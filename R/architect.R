@@ -5,7 +5,7 @@
 #' @description
 #' \code{architect} is an \code{\link{R6Class}} that provides a framework for intelligent data architecture.  It features a \emph{taxonomical-formulaic} definition framework and a \emph{predicate-logical} transformation framework
 #'
-#' @export
+# @export
 architect <- { R6::R6Class(
 	classname = "architect"
 	# _____ PUBLIC METHODS _____
@@ -17,7 +17,7 @@ architect <- { R6::R6Class(
 		#' Initialize the architectural framework
 		initialize = function(){
 			# ::  CLASS MEMBERS INITIALIZATION
-			
+
 			invisible(self);
 			}
 		)}
