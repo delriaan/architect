@@ -3,8 +3,6 @@
 #'
 #' @description
 #' \code{architect} is a \code{\link[data.table]{data.table}}-driven framework for intelligent data architecture.
-#'
-#' @importFrom book.of.utilities %tf% %?% %??%
 #' @name architect
 NULL
 
@@ -47,8 +45,10 @@ define <- function(.data, ...){
       fun_expr <- .x;
       by_args <- character()
     } else {
-	    f 	<- eval(unlist(.x, recursive = FALSE));
-      fun_expr <- rlang::f_lhs(data.table::setattr(f, ".Environment", env));
+	    f 	<- eval(unlist(.x, recursive = FALSE)) |> data.table::setattr(".Environment", env);
+
+      fun_expr <- rlang::f_lhs();
+
       by_args <- purrr::map(attr(terms(f), "term.labels"), ~{
 					c(parse(text = glue::glue(".smartData${grep('use[()]', .x, value = TRUE)} |> names()"))
 						, glue::glue("{grep('use[()]', .x, value = TRUE, invert = TRUE)}")
@@ -57,7 +57,7 @@ define <- function(.data, ...){
 					sapply(eval, envir = environment())
 				}) |> unlist();
 
-      if (!all(by_args %in% names(.data))){ by_args <- NULL }
+      if (!all(by_args %in% names(.data))){ by_args <- character() }
     }
 
     .op <- if (!rlang::is_empty(fun_expr)){
@@ -74,7 +74,7 @@ define <- function(.data, ...){
 	      	.out_expr$by <- by_args
 	      }
 
-	    	print(.out_expr)
+	    	# print(.out_expr)
 	    } else if (!rlang::is_empty(by_args)){
 	    	# Selection Branch
 	      rlang::expr(.data[, c(!!!by_args), with = FALSE])
@@ -89,51 +89,47 @@ define <- function(.data, ...){
   return(.data)
 }
 #
-join.mapper <- function(map_name = "new_join_map", obj_names, field_names = "*", env = parent.frame(), clean = FALSE){
+join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_names, field_names = "*", clean = FALSE){
 #' Create a Data Join Map
 #'
 #' \code{join.mapper} Creates a map with which datasets can be joined using \code{\link[data.table]{data.table}} methods.  Cross-environment objects are not supported, but objects in attached environment \emph{might} work.  Also, the output is given attribute \code{"env"} to store the value of \code{env}
 #'
 #' @param map_name The output map name to use in assignment
+#' @param env The environment where source objects are found; this is also the environment of the assigned output.
 #' @param obj_names (string[]) The names of objects to join
 #' @param field_names (string[]) One or more strings and REGEX patterns used to define the field names to use for possible joins: matching is either REGEX or identity, and support for aliasing via \code{"primary_col==alias_col"} (note the quotes) is supported.
-#' @param env The environment where source objects are found; this is also the environment of the assigned output.
 #' @param clean (logical) \code{TRUE} indicates that the object should be removed from \code{env} before creating the output
 #'
 #' @return If a \code{\link[DBOE]{DBOE}} DSN environment is passed to \code{env}, a local environment is used to contain the output of special code that transforms \code{env$metamap} into environment objects that can be used for creating the map: this should be stored or piped into \code{\link{join.reduce}}; otherwise, a \code{\link[data.table]{data.table}} object used join datasets via \code{\link{join.reduce}}
 #'
 #' @export
+
   # :: Argument Handling ----
   # map_name
-  map_name <- {
-    x = rlang::enexpr(map_name) |> as.character()
-    if (rlang::has_length(x, 1)){ x } else { x[-1] %>% .[1] }
-  }
+  map_name <- rlang::as_label(rlang::enexpr(map_name))
+
+  # env: Special case of DBOE dsn environment
+  if (hasName(env, "metamap")){ setattr(env, "DBOE", TRUE) }
 
   # field_names
   field_names <- purrr::map_chr(field_names, ~{
     if (any(stri_detect_fixed(deparse(.x), "=="))){
       stringi::stri_replace_all_fixed(.x, " ", "", vectorize_all = FALSE)
-    } else { rlang::inject(substitute(!!.x) %>% as.character()) }
+    } else {
+    	rlang::enexpr(!!.x) |> as.character()
+    }
   }) |> unlist()
-
-  # env: Special case of DBOE dsn environment: virtual objects are created for the purpose of creating the map
-  .pipe_env <- FALSE;
-
-  if (rlang::env_has(env, "metamap")){
-    .pipe_env <- TRUE;
-    .db <- env$metamap$database[1];
-
-    env <- env$metamap |>
-      split(by = c("schema_name", "tbl_name")) %>%
-      purrr::map(~.x[, rep.int(1, .N) |> purrr::set_names(col_name) |> as.list(), by = .(schema_name, tbl_name)]) |>
-      list2env(envir = new.env() |>setattr("DBOE", TRUE))
-  }
+	field_names <- purrr::as_mapper({
+		.this <- list()
+		.this$natural_joins <- .x[!grepl("[=]", .x)]
+		.this$equijoins <- .x[grepl("[=]", .x)]
+		.this
+	})(field_names)
 
   # :: Output ----
-  .queue = mget(ls(pattern = paste(obj_names, collapse = "|"), envir = env), envir = env)
-
   if (clean){ rm(list = purrr::keep(map_name, exists, envir = env), envir = env) }
+
+  .queue <- mget(ls(pattern = paste(obj_names, collapse = "|"), envir = env), envir = env)
 
   .output = {
     purrr::imap_dfr(.queue, ~{

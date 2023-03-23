@@ -1,6 +1,6 @@
 Package: architect
 Type: Package
-Version: 0.2.1
+Version: 0.3.0
 Author: Chionesu George <sapienti.Dei@outlook.com> [aut, cre]
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
 Encoding: UTF-8
@@ -12,6 +12,5 @@ Depends: R (>= 4.1.0)
 Imports: purrr
 	, stringi
 	, rlang
-	, book.of.utilities
 Recommends: smart.data
 License: file LICENSE
