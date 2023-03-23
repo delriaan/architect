@@ -3,6 +3,6 @@
 export(define)
 export(join.mapper)
 export(join.reduce)
-importFrom(book.of.utilities,"%::%")
+importFrom(book.of.utilities,"%tf%")
 importFrom(book.of.utilities,"%?%")
 importFrom(book.of.utilities,"%??%")
