@@ -4,7 +4,7 @@
 #' @description
 #' \code{architect} is a \code{\link[data.table]{data.table}}-driven framework for intelligent data architecture.
 #'
-#' @importFrom book.of.utilities %::% %?% %??%
+#' @importFrom book.of.utilities %tf% %?% %??%
 #' @name architect
 NULL
 
