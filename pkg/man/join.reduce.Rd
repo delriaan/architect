@@ -5,32 +5,32 @@
 \title{Join-Reduce Multiple Datasets}
 \usage{
 join.reduce(
-  jmap,
-  x.names,
-  i.names,
+  join_map,
+  out_name,
+  x_names,
+  i_names,
   filters = TRUE,
-  dt.key,
-  env,
-  clean = FALSE,
-  .debug = FALSE
+  dt_key,
+  env = rlang::caller_env(),
+  clean = FALSE
 )
 }
 \arguments{
-\item{jmap}{The join-map (see \code{link{join.mapper}})}
+\item{join_map}{The input join-map (see \code{link{join.mapper}})}
 
-\item{x.names}{(string[]) Names or REGEX patterns indicating the outer table: multiple values will be concatenated into a delimited string}
+\item{out_name}{The name of the output object}
 
-\item{i.names}{(string[]) Names or REGEX patterns indicating the inner table to be joined: multiple values will be concatenated into a delimited string}
+\item{x_names}{(string[]) Names or REGEX patterns indicating the outer table: multiple values will be concatenated into a delimited string}
+
+\item{i_names}{(string[]) Names or REGEX patterns indicating the inner table to be joined: multiple values will be concatenated into a delimited string}
 
 \item{filters}{(expression[[]]) \code{data.table}-friendly expression to limit the rows of the output. A length-2 list indicates \emph{row} and \emph{column} expressions respectively.}
 
-\item{dt.key}{(string[], symbol[]) Names that participate in creating the \code{\link[data.table]{key}} for the output}
+\item{dt_key}{(string[], symbol[]) Names that participate in creating the \code{\link[data.table]{key}} for the output}
 
 \item{env}{The environment in which the output should be assigned.  If empty, it defaults to \code{attr(jmap, "env")}}
 
 \item{clean}{(logical) \code{TRUE} indicates that the object should be removed from \code{env} before creating the output}
-
-\item{.debug}{(logical) Debugging flag: no output is produced}
 }
 \value{
 Combined datasets assigned to the designated environment

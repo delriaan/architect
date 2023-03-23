@@ -6,20 +6,20 @@
 \usage{
 join.mapper(
   map_name = "new_join_map",
+  env = parent.frame(),
   obj_names,
   field_names = "*",
-  env = parent.frame(),
   clean = FALSE
 )
 }
 \arguments{
 \item{map_name}{The output map name to use in assignment}
 
+\item{env}{The environment where source objects are found; this is also the environment of the assigned output.}
+
 \item{obj_names}{(string[]) The names of objects to join}
 
 \item{field_names}{(string[]) One or more strings and REGEX patterns used to define the field names to use for possible joins: matching is either REGEX or identity, and support for aliasing via \code{"primary_col==alias_col"} (note the quotes) is supported.}
-
-\item{env}{The environment where source objects are found; this is also the environment of the assigned output.}
 
 \item{clean}{(logical) \code{TRUE} indicates that the object should be removed from \code{env} before creating the output}
 }

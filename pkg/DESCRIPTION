@@ -1,16 +1,22 @@
-Package: architect
 Type: Package
+Package: architect
+Title: Intelligent Data Architecture
 Version: 0.3.0
 Author: Chionesu George <sapienti.Dei@outlook.com> [aut, cre]
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
+Description: Package `architect` is a framework for intelligent data
+    architecture.
+License: file LICENSE
+Depends: R (>= 4.1.0)
+Imports: 
+    magrittr,
+    data.table,
+    purrr,
+    rlang,
+    stringi, 
+		utils, 
+		smart.data, 
+		book.of.features
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
-Depends: R (>= 4.1.0)
-	, data.table
-	, magrittr
-Imports: purrr
-	, stringi
-	, rlang
-Recommends: smart.data
-License: file LICENSE
