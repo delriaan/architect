@@ -70,7 +70,7 @@ define <- function(data, ...){
     data <<- eval(.op);
   });
 
-  return(data)
+  return(invisible(data))
 }
 #
 join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_names, field_names = "*", clean = FALSE){
@@ -98,21 +98,24 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
   if (utils::hasName(env, "metamap")){ data.table::setattr(env, "DBOE", TRUE) }
 
   # field_names
-  fun <- purrr::as_mapper(~{ list(
-					natural_joins = .x[!grepl("[=$\\^()]", .x)] |> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
-					, equi_joins	= .x[grepl("[=]{2}", .x)]
-					, fuzzy_joins	= .x[grepl("[$\\^()]", .x)] |> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
-					)
-			});
+  fun <- purrr::as_mapper(~{
+	  	list(
+				natural_joins = .x[!grepl("[=$\\^()]", .x)] |> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
+				, equi_joins	= .x[grepl("[=]{2}", .x)] 		|> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
+				, fuzzy_joins	= .x[grepl("[$\\^()]", .x)] 	|> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
+				)
+		});
 
   field_names <- purrr::imap(fun(field_names), ~{
   		vars <- stringi::stri_replace_all_fixed(.x, " ", "", vectorize_all = FALSE)
-			rlang::exprs(
+  		if (rlang::is_empty(vars)){ NULL } else {
+				rlang::exprs(
 					natural_joins = intersect(names(.this), !!vars)
-          , equi_joins = purrr::keep(names(.this), ~grepl(!!vars, .x))
+          , equi_joins = !!vars
           , fuzzy_joins = purrr::keep(names(.this), ~grepl(!!vars, .x))
 					)[[.y]]
-		})
+  			}
+		}) |> purrr::compact()
 
   # :: Output ----
   if (clean){ rm(list = purrr::keep(map_name, exists, envir = env), envir = env) }
@@ -122,8 +125,13 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
     purrr::imap_dfr(~{
     	.this <- .x
       obj_name <- .y
-      field_names <- purrr::imap(field_names, ~{ if (!rlang::is_empty(.x)){ eval(.x) }}) |>
-      								magrittr::freduce(list(purrr::compact, unlist, unique))
+
+      field_names <- purrr::imap(field_names, ~{
+      		if (!rlang::is_empty(.x)){
+      			keep(eval(.x), ~any(stringi::stri_split_regex(.x, "[ =]", simplify = TRUE, tokens_only = TRUE) %in% names(get(obj_name, envir = env))))
+      		}
+      	}) |>
+      	magrittr::freduce(list(purrr::compact, unlist, unique))
 
       data.table::data.table(obj_name, field_names)
     }) |>
@@ -138,7 +146,7 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
     }, envir = env);
 }
 #
-join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt_key, env = rlang::caller_env(), clean = FALSE){
+join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt_key, source_env = attr(join_map, "env"), assign_env = attr(jmap, "env"), clean = FALSE){
 #' Join-Reduce Multiple Datasets
 #'
 #' \code{join.reduce} leverages \code{\link[data.table]{data.table}} fast joins and \code{\link[purrr]{reduce}} from package \code{purr}
@@ -149,7 +157,8 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
 #' @param i_names (string[]) Names or REGEX patterns indicating the inner table to be joined: multiple values will be concatenated into a delimited string
 #' @param filters  (expression[[]]) \code{data.table}-friendly expression to limit the rows of the output. A length-2 list indicates \emph{row} and \emph{column} expressions respectively.
 #' @param dt_key (string[], symbol[]) Names that participate in creating the \code{\link[data.table]{key}} for the output
-#' @param env The environment in which the output should be assigned.  If empty, it defaults to \code{attr(jmap, "env")}
+#' @param source_env The environment from which the input should be sourced.  If empty, it defaults to \code{attr(jmap, "env")}
+#' @param assign_env The environment in which the output should be assigned.  If empty, it defaults to \code{attr(jmap, "env")}
 #' @param clean (logical) \code{TRUE} indicates that the object should be removed from \code{env} before creating the output
 #'
 #' @importFrom magrittr %>% %<>% %T>%
@@ -219,11 +228,14 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
 	  )
   }
 
-  .alpha <- { purrr::pmap(join_map, xion.func) |>
-      purrr::compact() |>
-      data.table::rbindlist()
-  .alpha[!(on %ilike% "source"), .(on = list(I(on))), by = .(x, i)]
-  }
+  .alpha <- { data.table::rbindlist(
+  		purrr::pmap(join_map, xion.func) |>
+      purrr::compact())[
+      !(on %ilike% "source")
+      , .(on = list(I(on)))
+      , by = .(x, i)
+      ]
+	  }
 
   .beta <- { .alpha[
 	    , list(rlang::new_box(.SD[, .(i, on)] |> apply(1, I))), by = x
@@ -238,9 +250,9 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
   .output = purrr::map(.beta, ~{
     row_filter = filters[[1]]
 
-    colfilter = filters[[2]]
+    col_filter = filters[[2]]
 
-    .out = eval(str2lang(.x), envir = attr(join_map, "env"))
+    .out = eval(rlang::parse_expr(.x), envir = source_env)
 
     .out %<>% {
     	.[eval(row_filter), eval(col_filter)][, mget(discard(ls(), ~.x %ilike% "strptime|^i[.]"))] %>%
@@ -252,8 +264,8 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
   }) %>%
   	purrr::set_names(paste0("J_data_", stringi::stri_pad_left(seq_along(.), width = stringi::stri_length(as.character(length(.))))))
 
-  if (clean){ rm(list = names(.output), envir = env) }
+  if (clean){ rm(list = names(.output), envir = assign_env) }
 
-  assign(out_name, .output, envir = env)
+  assign(out_name, if (rlang::has_length(.output, 1)){ .output[[1]] } else { output }, envir = assign_env)
 }
 
