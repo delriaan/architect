@@ -1,7 +1,7 @@
 Type: Package
 Package: architect
 Title: Intelligent Data Architecture
-Version: 0.3.10
+Version: 0.3.11
 Author: Chionesu George <sapienti.Dei@outlook.com> [aut, cre]
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
 Description: Package `architect` is a framework for intelligent data
@@ -15,8 +15,8 @@ Imports:
     rlang,
     stringi, 
 		utils, 
-		smart.data, 
-		book.of.features
+		smart.data (>= 2.0.0), 
+		book.of.features (>= 1.0.0)
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.2.3
