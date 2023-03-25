@@ -11,7 +11,8 @@ join.reduce(
   i_names,
   filters = TRUE,
   dt_key,
-  env = rlang::caller_env(),
+  source_env = attr(join_map, "env"),
+  assign_env = attr(jmap, "env"),
   clean = FALSE
 )
 }
@@ -28,7 +29,9 @@ join.reduce(
 
 \item{dt_key}{(string[], symbol[]) Names that participate in creating the \code{\link[data.table]{key}} for the output}
 
-\item{env}{The environment in which the output should be assigned.  If empty, it defaults to \code{attr(jmap, "env")}}
+\item{source_env}{The environment from which the input should be sourced.  If empty, it defaults to \code{attr(jmap, "env")}}
+
+\item{assign_env}{The environment in which the output should be assigned.  If empty, it defaults to \code{attr(jmap, "env")}}
 
 \item{clean}{(logical) \code{TRUE} indicates that the object should be removed from \code{env} before creating the output}
 }
