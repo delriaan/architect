@@ -136,7 +136,7 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
       data.table::data.table(obj_name, field_names)
     }) |>
 		define(
-    	c(.SD[, .(field_names)], book.of.features::logic_map(obj_name))
+    	list(.SD[, .(field_names)], book.of.features::logic_map(obj_name))
     	, purrr::map(.SD, max, na.rm = TRUE) ~ field_names
     	, unique(.SD)
     	, idx = order(.SD[, !"field_names"] |> apply(1, sum))
