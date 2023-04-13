@@ -36,3 +36,5 @@ inspect <- define(
 
 get.smart("defined")$use(category, identifier, retain = drat)
 # <<<
+
+# pkgdown::build_site(pkg = "pkg", override = list(destination = "../docs"))

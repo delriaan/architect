@@ -29,12 +29,12 @@ define <- function(data, ...){
 
   .ops <- rlang::enexprs(...);
 
-  purrr::iwalk(.ops, ~{
-    if (!rlang::is_formula(.x)){
-      fun_expr <- .x;
+  .func <- function(x, y){
+    if (!rlang::is_formula(x)){
+      fun_expr <- x;
       by_args <- character()
     } else {
-	    f <- eval(unlist(.x, recursive = FALSE)) |> data.table::setattr(".Environment", as.environment(data));
+	    f <- eval(unlist(x, recursive = FALSE)) |> data.table::setattr(".Environment", as.environment(data));
 
       fun_expr <- rlang::f_lhs(f = f);
 
@@ -45,9 +45,9 @@ define <- function(data, ...){
 
     .op <- if (!rlang::is_empty(fun_expr)){
 	    	# Operation Branch
-	    	.out_expr <- if (.y != ""){
+	    	.out_expr <- if (y != ""){
 		      # Assignment branch
-	          rlang::expr(data[, `:=`(!!.y, !!fun_expr)])
+	          rlang::expr(data[, `:=`(!!y, !!fun_expr)])
 	        } else {
 		      # Operation-only branch
 	          rlang::expr(data[, !!fun_expr])
@@ -68,8 +68,9 @@ define <- function(data, ...){
 	    }
 
     data <<- eval(.op);
-  });
+  };
 
+  purrr::iwalk(.ops, .func);
   return(invisible(data))
 }
 #
@@ -98,22 +99,21 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
   if (utils::hasName(env, "metamap")){ data.table::setattr(env, "DBOE", TRUE) }
 
   # field_names
-  fun <- purrr::as_mapper(~{
-	  	list(
-				natural_joins = .x[!grepl("[=$\\^()]", .x)] |> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
-				, equi_joins	= .x[grepl("[=]{2}", .x)] 		|> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
-				, fuzzy_joins	= .x[grepl("[$\\^()]", .x)] 	|> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
+  fun <- \(x) list(
+				natural_joins = x[!grepl("[=$\\^()]", x)] |> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
+				, equi_joins	= x[grepl("[=]{2}", x)] 		|> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
+				, fuzzy_joins	= x[grepl("[$\\^()]", x)] 	|> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
 				)
-		});
 
-  field_names <- purrr::imap(fun(field_names), ~{
-  		vars <- stringi::stri_replace_all_fixed(.x, " ", "", vectorize_all = FALSE)
+  field_names <- purrr::imap(fun(field_names), \(x, y){
+  		vars <- stringi::stri_replace_all_fixed(x, " ", "", vectorize_all = FALSE)
+
   		if (rlang::is_empty(vars)){ NULL } else {
 				rlang::exprs(
 					natural_joins = intersect(names(.this), !!vars)
           , equi_joins = !!vars
-          , fuzzy_joins = purrr::keep(names(.this), ~grepl(!!vars, .x))
-					)[[.y]]
+          , fuzzy_joins = purrr::keep(names(.this), \(j) grepl(!!vars, j, ignore.case = TRUE))
+					)[[y]]
   			}
 		}) |> purrr::compact()
 
@@ -126,14 +126,14 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
     	.this <- .x
       obj_name <- .y
 
-      field_names <- purrr::imap(field_names, ~{
-      		if (!rlang::is_empty(.x)){
-      			keep(eval(.x), ~any(stringi::stri_split_regex(.x, "[ =]", simplify = TRUE, tokens_only = TRUE) %in% names(get(obj_name, envir = env))))
+      field_names <- purrr::imap(field_names, \(x){
+      		if (!rlang::is_empty(x)){
+      			keep(eval(x), \(j) any(stringi::stri_split_regex(j, "[ =]", simplify = TRUE, tokens_only = TRUE) %in% names(get(obj_name, envir = env))))
       		}
       	}) |>
-      	magrittr::freduce(list(purrr::compact, unlist, unique))
+      	magrittr::freduce(list(purrr::compact, unlist, unique));
 
-      data.table::data.table(obj_name, field_names)
+      data.table::data.table(obj_name, field_names);
     }) |>
 		define(
     	list(.SD[, .(field_names)], book.of.features::logic_map(obj_name))
@@ -173,8 +173,10 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
 
   # i_names
   if (rlang::is_empty(i_names)){
-    i_names <- paste(names(join_map) |> purrr::discard(~.x %ilike% x_names) |> c("field_names"), collapse = "|")
-  } else { if (!rlang::has_length(i_names, 1)){ i_names <- paste(i_names, collapse = "|") } else { i_names } }
+    i_names <- paste(names(join_map) |> purrr::discard(\(x) grepl(x_names, x, ignore.case =TRUE)) |> c("field_names"), collapse = "|")
+  } else {
+  	if (!rlang::has_length(i_names, 1)){ i_names <- paste(i_names, collapse = "|") } else { i_names }
+  }
 
   # join_map
   if (!data.table::is.data.table(join_map)){ join_map %<>% data.table::as.data.table() }
@@ -193,6 +195,7 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
 
   # filters
   if (!is.list(filters)){ filters <- as.list(filters) }
+
   if (rlang::has_length(filters, 1)){
   	filters <- append(filters, list(quote(mget(ls()))))
   } else if (!rlang::has_length(2)){
@@ -228,17 +231,11 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
 	  )
   }
 
-  .alpha <- { data.table::rbindlist(
-  		purrr::pmap(join_map, xion.func) |>
-      purrr::compact())[
-      !(on %ilike% "source")
-      , .(on = list(I(on)))
-      , by = .(x, i)
-      ]
+  .alpha <- { data.table::rbindlist(purrr::pmap(join_map, xion.func) |> purrr::compact())[
+      !(on %ilike% "source"), .(on = list(I(on))), by = .(x, i)]
 	  }
 
-  .beta <- { .alpha[
-	    , list(rlang::new_box(.SD[, .(i, on)] |> apply(1, I))), by = x
+  .beta <- { .alpha[, list(rlang::new_box(.SD[, .(i, on)] |> apply(1, I))), by = x
 	    ][
 	    , purrr::imap(purrr::set_names(V1, x), ~{
 			    .this = .y; .that = .x;
@@ -255,7 +252,7 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
     .out = eval(rlang::parse_expr(.x), envir = source_env)
 
     .out %<>% {
-    	.[eval(row_filter), eval(col_filter)][, mget(discard(ls(), ~.x %ilike% "strptime|^i[.]"))] %>%
+    	.[eval(row_filter), eval(col_filter)][, mget(discard(ls(), \(x) grepl("strptime|^i[.]", x, ignore.case = TRUE)))] |>
         unique() |>
         setnames("full_dt", "event_date", skip_absent = TRUE)
     }
