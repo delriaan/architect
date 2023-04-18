@@ -126,7 +126,7 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
     	.this <- .x
       obj_name <- .y
 
-      field_names <- purrr::imap(field_names, \(x){
+      field_names <- purrr::map(purrr::flatten(field_names), \(x){
       		if (!rlang::is_empty(x)){
       			keep(eval(x), \(j) any(stringi::stri_split_regex(j, "[ =]", simplify = TRUE, tokens_only = TRUE) %in% names(get(obj_name, envir = env))))
       		}
