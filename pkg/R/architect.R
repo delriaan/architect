@@ -124,19 +124,19 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
 
   assign(map_name, {
   	mget(obj_names, envir = env) |>
-    purrr::imap_dfr(\(.this, .obj){
+    purrr::imap_dfr(\(.this, .nm){
       # field_names has one or more of the following names: natural_joins, equi_joins, fuzzy_joins
       .fields <- purrr::map(field_names, \(x){
       		if (!rlang::is_empty(x)){
       			purrr::keep(
       				eval(x)
-      				, \(j) any(stringi::stri_split_regex(j, "[ =]", simplify = TRUE, tokens_only = TRUE) %in% names(get(obj_name, envir = env)))
+      				, \(j) any(stringi::stri_split_regex(j, "[ =]", simplify = TRUE, tokens_only = TRUE) %in% names(get(.nm, envir = env)))
       				)
       		}
       	}) |>
       	magrittr::freduce(list(purrr::compact, unlist, unique));
 
-      data.table::data.table(obj_name = .obj, field_names = .fields);
+      data.table::data.table(obj_name = .nm, field_names = .fields);
     }) |>
 		define(
     	list(.SD[, .(field_names)], book.of.features::logic_map(obj_name))
