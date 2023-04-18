@@ -103,9 +103,11 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
 				natural_joins = x[!grepl("[=$\\^()]", x)] |> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
 				, equi_joins	= x[grepl("[=]{2}", x)] 		|> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
 				, fuzzy_joins	= x[grepl("[$\\^()]", x)] 	|> stringi::stri_split_regex(pattern = "[, |]", simplify = TRUE)
-				)
+				);
 
-  field_names <- purrr::imap(fun(field_names), \(x, y){
+  obj_names <- ls(pattern = paste(obj_names, collapse = "|"), envir = env);
+
+  field_names <- fun(field_names) |> purrr::imap(\(x, y){
   		vars <- stringi::stri_replace_all_fixed(x, " ", "", vectorize_all = FALSE)
 
   		if (rlang::is_empty(vars)){ NULL } else {
@@ -121,19 +123,20 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
   if (clean){ rm(list = purrr::keep(map_name, exists, envir = env), envir = env) }
 
   assign(map_name, {
-  	mget(ls(pattern = paste(obj_names, collapse = "|"), envir = env), envir = env) |>
-    purrr::imap_dfr(~{
-    	.this <- .x
-      obj_name <- .y
-
-      field_names <- purrr::map(purrr::flatten(eval(field_names)), \(x){
+  	mget(obj_names, envir = env) |>
+    purrr::imap_dfr(\(.this, .obj){
+      # field_names has one or more of the following names: natural_joins, equi_joins, fuzzy_joins
+      .fields <- purrr::map(field_names, \(x){
       		if (!rlang::is_empty(x)){
-      			keep(eval(x), \(j) any(stringi::stri_split_regex(j, "[ =]", simplify = TRUE, tokens_only = TRUE) %in% names(get(obj_name, envir = env))))
+      			purrr::keep(
+      				eval(x)
+      				, \(j) any(stringi::stri_split_regex(j, "[ =]", simplify = TRUE, tokens_only = TRUE) %in% names(get(obj_name, envir = env)))
+      				)
       		}
       	}) |>
       	magrittr::freduce(list(purrr::compact, unlist, unique));
 
-      data.table::data.table(obj_name, field_names);
+      data.table::data.table(obj_name = .obj, field_names = .fields);
     }) |>
 		define(
     	list(.SD[, .(field_names)], book.of.features::logic_map(obj_name))
