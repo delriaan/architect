@@ -1,7 +1,7 @@
 Type: Package
 Package: architect
 Title: Intelligent Data Architecture
-Version: 0.1.1
+Version: 0.1.2
 Author: Chionesu George <sapienti.Dei@outlook.com> [aut, cre]
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
 Description: Package `architect` is a framework for intelligent data

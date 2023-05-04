@@ -149,7 +149,7 @@ join.mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
     }, envir = env);
 }
 #
-join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt_key, source_env = attr(join_map, "env"), assign_env = attr(jmap, "env"), clean = FALSE){
+join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt_key, source_env = attr(join_map, "env"), assign_env = attr(join_map, "env"), clean = FALSE){
 #' Join-Reduce Multiple Datasets
 #'
 #' \code{join.reduce} leverages \code{\link[data.table]{data.table}} fast joins and \code{\link[purrr]{reduce}} from package \code{purr}

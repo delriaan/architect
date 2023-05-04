@@ -12,7 +12,7 @@ join.reduce(
   filters = TRUE,
   dt_key,
   source_env = attr(join_map, "env"),
-  assign_env = attr(jmap, "env"),
+  assign_env = attr(join_map, "env"),
   clean = FALSE
 )
 }
