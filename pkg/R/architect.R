@@ -264,7 +264,7 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
   }) %>%
   	purrr::set_names(paste0("J_data_", stringi::stri_pad_left(seq_along(.), width = stringi::stri_length(as.character(length(.))))))
 
-  if (clean){ rm(list = names(.output), envir = assign_env) }
+  if (clean){ rm(list = names(.output) |> purrr::keep(\(x) hasName(assign_env, x)), envir = assign_env) }
 
   assign(out_name, if (rlang::has_length(.output, 1)){ .output[[1]] } else { output }, envir = assign_env)
 }
