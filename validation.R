@@ -10,10 +10,11 @@ define(mtcars)
 # <<<
 
 # smart.data input >>>
+smart.data::smart.start()
 smart_mt <- smart.data::smart.data$new(as.data.table(mtcars, keep.rownames = TRUE))$taxonomy.rule();
 
 define(smart_mt, list(j = 1, mpg) ~vs + am + use(identifier, category), ~j + mpg)
-define(smart_mt, ~vs + am + use(identifier, category))
+define(smart_mt, ~vs + am + use(identifier, category))[]
 define(smart_mt, x = sum(am^2) ~ use(identifier, category))[]
 # <<<
 

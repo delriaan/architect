@@ -4,17 +4,19 @@
 \alias{define}
 \title{Define a Data Operation}
 \usage{
-define(data, ...)
+define(data, ..., keep.rownames = TRUE)
 }
 \arguments{
 \item{data}{The input data (see 'Details')}
 
-\item{...}{(\code{\link[rlang]{dots_list}}): Formulae for which the left-hand side (LHS) is an expression containing the operation, and the right-hand side (RHS) contains column names that form a grouping set for the operation (i.e., \code{<expression> ~ col_1 + col_2 + ...}):
+\item{...}{(\code{\link[rlang]{dots_list}}): Formulas for which the left-hand side (LHS) is an expression containing the operation, and the right-hand side (RHS) contains column names that form a grouping set for the operation (i.e., \code{<expression> ~ col_1 + col_2 + ...}):
 \itemize{
 \item{If the form \code{<LHS>~ .} is given, the LHS executes using all columns as the grouping set}
 \item{If the form \code{<LHS>~ 1} is given, the LHS executes without grouping}
 \item{If no LHS is given, the operation defaults to selection based on the RHS}
 }}
+
+\item{keep.rownames}{See \code{\link[data.table]{data.table}}}
 }
 \value{
 The data modified

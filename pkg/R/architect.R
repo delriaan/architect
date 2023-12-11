@@ -1,4 +1,4 @@
-define <- function(data, ...){
+define <- function(data, ..., keep.rownames = TRUE){
 #' Define a Data Operation
 #'
 #' \code{define} allows one to operate on data using one or more formula-based definitions. Data transformation and selection can be achieved with formulas or using standard \code{\link[data.table]{data.table}} syntax in a procedural manner with a single function call.
@@ -7,26 +7,33 @@ define <- function(data, ...){
 #' If \code{x} is a \code{\link[smart.data]{smart.data}} object, the taxonomical references to field names can be accessed by using the \code{use()} syntax in the right-hand side of the formula (e.g., \code{~use(term1, term2) + otherTerm1 + ...})
 #'
 #' @param data The input data (see 'Details')
-#' @param ... (\code{\link[rlang]{dots_list}}): Formulae for which the left-hand side (LHS) is an expression containing the operation, and the right-hand side (RHS) contains column names that form a grouping set for the operation (i.e., \code{<expression> ~ col_1 + col_2 + ...}):
+#' @param ... (\code{\link[rlang]{dots_list}}): Formulas for which the left-hand side (LHS) is an expression containing the operation, and the right-hand side (RHS) contains column names that form a grouping set for the operation (i.e., \code{<expression> ~ col_1 + col_2 + ...}):
 #' \itemize{
 #' \item{If the form \code{<LHS>~ .} is given, the LHS executes using all columns as the grouping set}
 #' \item{If the form \code{<LHS>~ 1} is given, the LHS executes without grouping}
 #' \item{If no LHS is given, the operation defaults to selection based on the RHS}
 #' }
+#' @param keep.rownames See \code{\link[data.table]{data.table}}
 #'
 #' @return The data modified
+#'
+#' @importClassesFrom data.table data.table
+#'
 #' @export
   force(data);
   .smartData <- fun_expr <- by_args <- NULL;
 
-	if ("smart.data" %in% utils::installed.packages()[, "Package"]){
+	if (require(smart.data)){
 		if (smart.data::is.smart(data)){
 			.smartData <- data$clone(deep = TRUE)
 			data <- data.table::copy(.smartData$data)
 		}
 	}
-	if (!data.table::is.data.table(data)){ data <- data.table::as.data.table(data, keep.rownames = TRUE) }
+	if (!data.table::is.data.table(data)){
+		data <- data.table::as.data.table(data, keep.rownames = keep.rownames)
+	}
 
+  # `.ops` contains the operations to use to define the data
   .ops <- rlang::enexprs(...);
 
   .func <- function(x, y){
@@ -71,6 +78,7 @@ define <- function(data, ...){
   };
 
   purrr::iwalk(.ops, .func);
+
   return(invisible(data))
 }
 #
