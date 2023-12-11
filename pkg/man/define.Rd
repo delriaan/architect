@@ -27,3 +27,36 @@ The data modified
 \details{
 If \code{x} is a \code{\link[smart.data]{smart.data}} object, the taxonomical references to field names can be accessed by using the \code{use()} syntax in the right-hand side of the formula (e.g., \code{~use(term1, term2) + otherTerm1 + ...})
 }
+\examples{
+library(smart.data)
+smart.start();
+
+taxonomy_list <- list(
+	identifier = taxonomy(
+		term = "identifier"
+		, desc = "Identifier"
+		, fields = c("rn"))
+	, category = taxonomy(
+		term = "category"
+		, desc = "Category"
+		, fields = c("cyl", "gear", "carb")
+		)
+);
+
+smart_mt <- smart.data$
+	new(as.data.table(mtcars, keep.rownames = TRUE))$
+	taxonomy.rule(!!!taxonomy_list)$
+	enforce.rules(for_usage)$
+	cache_mgr(action = upd);
+
+define(
+	smart_mt
+	, list(j = 1, mpg) ~vs + am + use(identifier, category)
+	, ~j + mpg
+	)[];
+
+define(smart_mt, ~vs + am + use(identifier, category))[];
+
+define(smart_mt, x = sum(am^2) ~ use(identifier, category))[];
+
+}

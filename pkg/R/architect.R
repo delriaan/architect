@@ -17,7 +17,37 @@ define <- function(data, ..., keep.rownames = TRUE){
 #'
 #' @return The data modified
 #'
-#' @importClassesFrom data.table data.table
+#' @examples
+#' library(smart.data)
+#' smart.start();
+#'
+#' taxonomy_list <- list(
+#' 	identifier = taxonomy(
+#' 		term = "identifier"
+#' 		, desc = "Identifier"
+#' 		, fields = c("rn"))
+#' 	, category = taxonomy(
+#' 		term = "category"
+#' 		, desc = "Category"
+#' 		, fields = c("cyl", "gear", "carb")
+#' 		)
+#' );
+#'
+#' smart_mt <- smart.data$
+#' 	new(as.data.table(mtcars, keep.rownames = TRUE))$
+#' 	taxonomy.rule(!!!taxonomy_list)$
+#' 	enforce.rules(for_usage)$
+#' 	cache_mgr(action = upd);
+#'
+#' define(
+#' 	smart_mt
+#' 	, list(j = 1, mpg) ~vs + am + use(identifier, category)
+#' 	, ~j + mpg
+#' 	)[];
+#'
+#' define(smart_mt, ~vs + am + use(identifier, category))[];
+#'
+#' define(smart_mt, x = sum(am^2) ~ use(identifier, category))[];
 #'
 #' @export
   force(data);
@@ -33,10 +63,41 @@ define <- function(data, ..., keep.rownames = TRUE){
 		data <- data.table::as.data.table(data, keep.rownames = keep.rownames)
 	}
 
-  # `.ops` contains the operations to use to define the data
-  .ops <- rlang::enexprs(...);
+  # `.terms_check` is a helper function that checks for the use of the `use()` function in the RHS of the formula:
+  .terms_check <- \(expr){
+  	.orig_terms <- as.formula(expr) |> terms() |> attr("term.labels");
 
-  .func <- function(x, y){
+		# If any term is a `use()` term, then we need to get the taxonomy
+		# for each term and replace the term with the taxonomy field names:
+		if (any(grepl("^use[(]", .orig_terms)) & !rlang::is_empty(.smartData)){
+			# First, capture the terms that are not `use()` terms:
+			.terms <- grep("^use[(]", .orig_terms, value = TRUE, invert = TRUE);
+
+			# Then, capture the terms that are `use()` terms:
+			.taxonomy <- grep("^use[(]", .orig_terms, value = TRUE) |>
+					rlang::parse_expr() |>
+					as.list() |>
+					(`[`)(-1) |>
+					as.character();
+			# Then convert the `use()` terms to the taxonomy field names:
+			.taxonomy <- rlang::expr(with(
+					.smartData$smart.rules$for_usage
+					, mget(!!.taxonomy) |>
+							purrr::map(\(tax) tax@fields) |>
+							purrr::compact() |>
+							purrr::reduce(c)
+					));
+
+			# Update the formula with the new terms:
+			expr <- as.formula(expr);
+			rlang::f_rhs(expr) <- str2lang(paste(c(.terms, eval(.taxonomy)), collapse = " + "));
+		}
+
+  	return(expr);
+  }
+
+  # `.func` is the function that is called for each operation:
+  .func <- \(x, y){
     if (!rlang::is_formula(x)){
       fun_expr <- x;
       by_args <- character()
@@ -77,6 +138,10 @@ define <- function(data, ..., keep.rownames = TRUE){
     data <<- eval(.op);
   };
 
+  # `.ops` contains the operations to use to define the data:
+  .ops <- rlang::enexprs(...) |> purrr::map(.terms_check);
+
+  # `.ops` is iterated over using `.func`:
   purrr::iwalk(.ops, .func);
 
   return(invisible(data))

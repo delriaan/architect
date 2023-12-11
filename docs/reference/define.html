@@ -17,7 +17,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">architect</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2.3</span>
       </span>
     </div>
 
@@ -46,11 +46,11 @@
     </div>
 
     <div class="ref-description">
-    <p><code>define</code> allows one to operate on data using one or more formula-based definitions. Data transformation and selection can be achieved with formulas or using standard <code><a href="https://Rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code> syntax in a procedural manner with a single function call.</p>
+    <p><code>define</code> allows one to operate on data using one or more formula-based definitions. Data transformation and selection can be achieved with formulas or using standard <code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code> syntax in a procedural manner with a single function call.</p>
     </div>
 
     <div id="ref-usage">
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">define</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">define</span><span class="op">(</span><span class="va">data</span>, <span class="va">...</span>, keep.rownames <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div id="arguments">
@@ -60,10 +60,14 @@
 
 
 <dt>...</dt>
-<dd><p>(<code><a href="https://rlang.r-lib.org/reference/list2.html" class="external-link">dots_list</a></code>): Formulae for which the left-hand side (LHS) is an expression containing the operation, and the right-hand side (RHS) contains column names that form a grouping set for the operation (i.e., <code>&lt;expression&gt; ~ col_1 + col_2 + ...</code>):</p><ul><li><p>If the form <code>&lt;LHS&gt;~ .</code> is given, the LHS executes using all columns as the grouping set</p></li>
+<dd><p>(<code><a href="https://rlang.r-lib.org/reference/list2.html" class="external-link">dots_list</a></code>): Formulas for which the left-hand side (LHS) is an expression containing the operation, and the right-hand side (RHS) contains column names that form a grouping set for the operation (i.e., <code>&lt;expression&gt; ~ col_1 + col_2 + ...</code>):</p><ul><li><p>If the form <code>&lt;LHS&gt;~ .</code> is given, the LHS executes using all columns as the grouping set</p></li>
 <li><p>If the form <code>&lt;LHS&gt;~ 1</code> is given, the LHS executes without grouping</p></li>
 <li><p>If no LHS is given, the operation defaults to selection based on the RHS</p></li>
 </ul></dd>
+
+
+<dt>keep.rownames</dt>
+<dd><p>See <code><a href="https://rdatatable.gitlab.io/data.table/reference/data.table.html" class="external-link">data.table</a></code></p></dd>
 
 </dl></div>
     <div id="value">
@@ -77,6 +81,145 @@
     <p>If <code>x</code> is a <code><a href="https://delriaan.github.io/smart.data/reference/smart.data.html" class="external-link">smart.data</a></code> object, the taxonomical references to field names can be accessed by using the <code>use()</code> syntax in the right-hand side of the formula (e.g., <code>~use(term1, term2) + otherTerm1 + ...</code>)</p>
     </div>
 
+    <div id="ref-examples">
+    <h2>Examples</h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/delriaan/smart.data/" class="external-link">smart.data</a></span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required package: magrittr</span>
+<span class="r-in"><span><span class="fu"><a href="https://delriaan.github.io/smart.data/reference/smart.start.html" class="external-link">smart.start</a></span><span class="op">(</span><span class="op">)</span>;</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">taxonomy_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  identifier <span class="op">=</span> <span class="fu"><a href="https://delriaan.github.io/smart.data/reference/taxonomy-class.html" class="external-link">taxonomy</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    term <span class="op">=</span> <span class="st">"identifier"</span></span></span>
+<span class="r-in"><span>    , desc <span class="op">=</span> <span class="st">"Identifier"</span></span></span>
+<span class="r-in"><span>    , fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rn"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  , category <span class="op">=</span> <span class="fu"><a href="https://delriaan.github.io/smart.data/reference/taxonomy-class.html" class="external-link">taxonomy</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>    term <span class="op">=</span> <span class="st">"category"</span></span></span>
+<span class="r-in"><span>    , desc <span class="op">=</span> <span class="st">"Category"</span></span></span>
+<span class="r-in"><span>    , fields <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"gear"</span>, <span class="st">"carb"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span>;</span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">smart_mt</span> <span class="op">&lt;-</span> <span class="va"><a href="https://delriaan.github.io/smart.data/reference/smart.data.html" class="external-link">smart.data</a></span><span class="op">$</span></span></span>
+<span class="r-in"><span>  <span class="fu">new</span><span class="op">(</span><span class="fu"><a href="https://rdatatable.gitlab.io/data.table/reference/as.data.table.html" class="external-link">as.data.table</a></span><span class="op">(</span><span class="va">mtcars</span>, keep.rownames <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span><span class="op">$</span></span></span>
+<span class="r-in"><span>  <span class="fu">taxonomy.rule</span><span class="op">(</span><span class="op">!</span><span class="op">!</span><span class="op">!</span><span class="va">taxonomy_list</span><span class="op">)</span><span class="op">$</span></span></span>
+<span class="r-in"><span>  <span class="fu">enforce.rules</span><span class="op">(</span><span class="va">for_usage</span><span class="op">)</span><span class="op">$</span></span></span>
+<span class="r-in"><span>  <span class="fu">cache_mgr</span><span class="op">(</span>action <span class="op">=</span> <span class="va">upd</span><span class="op">)</span>;</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> 'new_data' is not found in the smart-cache</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">define</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  <span class="va">smart_mt</span></span></span>
+<span class="r-in"><span>  , <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>j <span class="op">=</span> <span class="fl">1</span>, <span class="va">mpg</span><span class="op">)</span> <span class="op">~</span><span class="va">vs</span> <span class="op">+</span> <span class="va">am</span> <span class="op">+</span> <span class="fu">use</span><span class="op">(</span><span class="va">identifier</span>, <span class="va">category</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  , <span class="op">~</span><span class="va">j</span> <span class="op">+</span> <span class="va">mpg</span></span></span>
+<span class="r-in"><span>  <span class="op">)</span><span class="op">[</span><span class="op">]</span>;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     j  mpg</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1: 1 21.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2: 1 21.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3: 1 22.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4: 1 21.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5: 1 18.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: 1 18.1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: 1 14.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: 1 24.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: 1 22.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: 1 19.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11: 1 17.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12: 1 16.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13: 1 17.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14: 1 15.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15: 1 10.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16: 1 10.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17: 1 14.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18: 1 32.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19: 1 30.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20: 1 33.9</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21: 1 21.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22: 1 15.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23: 1 15.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24: 1 13.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25: 1 19.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26: 1 27.3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27: 1 26.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28: 1 30.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29: 1 15.8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30: 1 19.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 31: 1 15.0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 32: 1 21.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     j  mpg</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">define</span><span class="op">(</span><span class="va">smart_mt</span>, <span class="op">~</span><span class="va">vs</span> <span class="op">+</span> <span class="va">am</span> <span class="op">+</span> <span class="fu">use</span><span class="op">(</span><span class="va">identifier</span>, <span class="va">category</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="op">]</span>;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     vs am                  rn cyl gear carb</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:  0  1           Mazda RX4   6    4    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:  0  1       Mazda RX4 Wag   6    4    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:  1  1          Datsun 710   4    4    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:  1  0      Hornet 4 Drive   6    3    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:  0  0   Hornet Sportabout   8    3    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:  1  0             Valiant   6    3    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:  0  0          Duster 360   8    3    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:  1  0           Merc 240D   4    4    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:  1  0            Merc 230   4    4    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:  1  0            Merc 280   6    4    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:  1  0           Merc 280C   6    4    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:  0  0          Merc 450SE   8    3    3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:  0  0          Merc 450SL   8    3    3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:  0  0         Merc 450SLC   8    3    3</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:  0  0  Cadillac Fleetwood   8    3    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16:  0  0 Lincoln Continental   8    3    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17:  0  0   Chrysler Imperial   8    3    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18:  1  1            Fiat 128   4    4    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19:  1  1         Honda Civic   4    4    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20:  1  1      Toyota Corolla   4    4    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21:  1  0       Toyota Corona   4    3    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22:  0  0    Dodge Challenger   8    3    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23:  0  0         AMC Javelin   8    3    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24:  0  0          Camaro Z28   8    3    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25:  0  0    Pontiac Firebird   8    3    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26:  1  1           Fiat X1-9   4    4    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27:  0  1       Porsche 914-2   4    5    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28:  1  1        Lotus Europa   4    5    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29:  0  1      Ford Pantera L   8    5    4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30:  0  1        Ferrari Dino   6    5    6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 31:  0  1       Maserati Bora   8    5    8</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 32:  1  1          Volvo 142E   4    4    2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     vs am                  rn cyl gear carb</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu">define</span><span class="op">(</span><span class="va">smart_mt</span>, x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">am</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">~</span> <span class="fu">use</span><span class="op">(</span><span class="va">identifier</span>, <span class="va">category</span><span class="op">)</span><span class="op">)</span><span class="op">[</span><span class="op">]</span>;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      rn  mpg cyl  disp  hp drat    wt  qsec vs am gear carb x</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:           Mazda RX4 21.0   6 160.0 110 3.90 2.620 16.46  0  1    4    4 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:       Mazda RX4 Wag 21.0   6 160.0 110 3.90 2.875 17.02  0  1    4    4 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:          Datsun 710 22.8   4 108.0  93 3.85 2.320 18.61  1  1    4    1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:      Hornet 4 Drive 21.4   6 258.0 110 3.08 3.215 19.44  1  0    3    1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:   Hornet Sportabout 18.7   8 360.0 175 3.15 3.440 17.02  0  0    3    2 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:             Valiant 18.1   6 225.0 105 2.76 3.460 20.22  1  0    3    1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:          Duster 360 14.3   8 360.0 245 3.21 3.570 15.84  0  0    3    4 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:           Merc 240D 24.4   4 146.7  62 3.69 3.190 20.00  1  0    4    2 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:            Merc 230 22.8   4 140.8  95 3.92 3.150 22.90  1  0    4    2 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:            Merc 280 19.2   6 167.6 123 3.92 3.440 18.30  1  0    4    4 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:           Merc 280C 17.8   6 167.6 123 3.92 3.440 18.90  1  0    4    4 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:          Merc 450SE 16.4   8 275.8 180 3.07 4.070 17.40  0  0    3    3 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:          Merc 450SL 17.3   8 275.8 180 3.07 3.730 17.60  0  0    3    3 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:         Merc 450SLC 15.2   8 275.8 180 3.07 3.780 18.00  0  0    3    3 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:  Cadillac Fleetwood 10.4   8 472.0 205 2.93 5.250 17.98  0  0    3    4 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16: Lincoln Continental 10.4   8 460.0 215 3.00 5.424 17.82  0  0    3    4 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17:   Chrysler Imperial 14.7   8 440.0 230 3.23 5.345 17.42  0  0    3    4 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18:            Fiat 128 32.4   4  78.7  66 4.08 2.200 19.47  1  1    4    1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 19:         Honda Civic 30.4   4  75.7  52 4.93 1.615 18.52  1  1    4    2 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 20:      Toyota Corolla 33.9   4  71.1  65 4.22 1.835 19.90  1  1    4    1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 21:       Toyota Corona 21.5   4 120.1  97 3.70 2.465 20.01  1  0    3    1 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 22:    Dodge Challenger 15.5   8 318.0 150 2.76 3.520 16.87  0  0    3    2 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 23:         AMC Javelin 15.2   8 304.0 150 3.15 3.435 17.30  0  0    3    2 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 24:          Camaro Z28 13.3   8 350.0 245 3.73 3.840 15.41  0  0    3    4 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 25:    Pontiac Firebird 19.2   8 400.0 175 3.08 3.845 17.05  0  0    3    2 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 26:           Fiat X1-9 27.3   4  79.0  66 4.08 1.935 18.90  1  1    4    1 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 27:       Porsche 914-2 26.0   4 120.3  91 4.43 2.140 16.70  0  1    5    2 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 28:        Lotus Europa 30.4   4  95.1 113 3.77 1.513 16.90  1  1    5    2 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 29:      Ford Pantera L 15.8   8 351.0 264 4.22 3.170 14.50  0  1    5    4 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 30:        Ferrari Dino 19.7   6 145.0 175 3.62 2.770 15.50  0  1    5    6 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 31:       Maserati Bora 15.0   8 301.0 335 3.54 3.570 14.60  0  1    5    8 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 32:          Volvo 142E 21.4   4 121.0 109 4.11 2.780 18.60  1  1    4    2 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                      rn  mpg cyl  disp  hp drat    wt  qsec vs am gear carb x</span>
+<span class="r-in"><span></span></span>
+</code></pre></div>
+    </div>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top"><h2 data-toc-skip>Contents</h2>

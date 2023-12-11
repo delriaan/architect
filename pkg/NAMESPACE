@@ -3,7 +3,6 @@
 export(define)
 export(join.mapper)
 export(join.reduce)
-importClassesFrom(data.table,data.table)
 importFrom(book.of.features,logic_map)
 importFrom(data.table,"%ilike%")
 importFrom(data.table,"%like%")
