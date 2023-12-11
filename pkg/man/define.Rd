@@ -4,7 +4,7 @@
 \alias{define}
 \title{Define a Data Operation}
 \usage{
-define(data, ..., keep.rownames = TRUE)
+define(data = NULL, ..., keep.rownames = TRUE)
 }
 \arguments{
 \item{data}{The input data (see 'Details')}
@@ -25,7 +25,10 @@ The data modified
 \code{define} allows one to operate on data using one or more formula-based definitions. Data transformation and selection can be achieved with formulas or using standard \code{\link[data.table]{data.table}} syntax in a procedural manner with a single function call.
 }
 \details{
-If \code{x} is a \code{\link[smart.data]{smart.data}} object, the taxonomical references to field names can be accessed by using the \code{use()} syntax in the right-hand side of the formula (e.g., \code{~use(term1, term2) + otherTerm1 + ...})
+\itemize{
+\item{If \code{data} is a \code{\link[smart.data]{smart.data}} object, the taxonomical references to field names can be accessed by using the \code{use()} syntax in the right-hand side of the formula (e.g., \code{~use(term1, term2) + otherTerm1 + ...}).}
+\item{When using formulas for \code{...} on an empty \code{\link[data.table]{data.table}} object, set the argument \code{data} to \code{NULL}; otherwise, you will get an error.}
+}
 }
 \examples{
 library(smart.data)
@@ -58,5 +61,10 @@ define(
 define(smart_mt, ~vs + am + use(identifier, category))[];
 
 define(smart_mt, x = sum(am^2) ~ use(identifier, category))[];
+define()[]
+define(x = 1:10, y = x * 3)[]
+define(x = 1:10, y = x * 3, z = x*y)[]
+define(NULL, x = 1:10, y = x * 3, z = x*y, ~x + z)[]
+define(data.table(), x = 1:10, y = x * 3, list(z = 10) ~ x)[]
 
 }
