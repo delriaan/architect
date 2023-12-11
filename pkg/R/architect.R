@@ -1,10 +1,13 @@
-define <- function(data, ..., keep.rownames = TRUE){
+define <- function(data = NULL, ..., keep.rownames = TRUE){
 #' Define a Data Operation
 #'
 #' \code{define} allows one to operate on data using one or more formula-based definitions. Data transformation and selection can be achieved with formulas or using standard \code{\link[data.table]{data.table}} syntax in a procedural manner with a single function call.
 #'
 #' @details
-#' If \code{x} is a \code{\link[smart.data]{smart.data}} object, the taxonomical references to field names can be accessed by using the \code{use()} syntax in the right-hand side of the formula (e.g., \code{~use(term1, term2) + otherTerm1 + ...})
+#' \itemize{
+#' \item{If \code{data} is a \code{\link[smart.data]{smart.data}} object, the taxonomical references to field names can be accessed by using the \code{use()} syntax in the right-hand side of the formula (e.g., \code{~use(term1, term2) + otherTerm1 + ...}).}
+#' \item{When using formulas for \code{...} on an empty \code{\link[data.table]{data.table}} object, set the argument \code{data} to \code{NULL}; otherwise, you will get an error.}
+#' }
 #'
 #' @param data The input data (see 'Details')
 #' @param ... (\code{\link[rlang]{dots_list}}): Formulas for which the left-hand side (LHS) is an expression containing the operation, and the right-hand side (RHS) contains column names that form a grouping set for the operation (i.e., \code{<expression> ~ col_1 + col_2 + ...}):
@@ -48,23 +51,34 @@ define <- function(data, ..., keep.rownames = TRUE){
 #' define(smart_mt, ~vs + am + use(identifier, category))[];
 #'
 #' define(smart_mt, x = sum(am^2) ~ use(identifier, category))[];
+#' define()[]
+#' define(x = 1:10, y = x * 3)[]
+#' define(x = 1:10, y = x * 3, z = x*y)[]
+#' define(NULL, x = 1:10, y = x * 3, z = x*y, ~x + z)[]
+#' define(data.table(), x = 1:10, y = x * 3, list(z = 10) ~ x)[]
 #'
 #' @export
-  force(data);
+
+	force(data);
   .smartData <- fun_expr <- by_args <- NULL;
 
 	if (require(smart.data)){
 		if (smart.data::is.smart(data)){
 			.smartData <- data$clone(deep = TRUE)
 			data <- data.table::copy(.smartData$data)
+		} else{
+			data <- data.table::as.data.table(data, keep.rownames = keep.rownames)
 		}
-	}
-	if (!data.table::is.data.table(data)){
+	} else {
 		data <- data.table::as.data.table(data, keep.rownames = keep.rownames)
 	}
 
   # `.terms_check` is a helper function that checks for the use of the `use()` function in the RHS of the formula:
   .terms_check <- \(expr){
+  	if (!grepl("~", rlang::as_label(expr))){
+  		return(expr);
+  	}
+		# browser()
   	.orig_terms <- as.formula(expr) |> terms() |> attr("term.labels");
 
 		# If any term is a `use()` term, then we need to get the taxonomy
@@ -134,6 +148,7 @@ define <- function(data, ..., keep.rownames = TRUE){
 	    	# Identity
 	    	rlang::expr(data)
 	    }
+
 
     data <<- eval(.op);
   };
