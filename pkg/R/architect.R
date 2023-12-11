@@ -79,7 +79,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE){
   		return(expr);
   	}
 		# browser()
-  	.orig_terms <- as.formula(expr) |> terms() |> attr("term.labels");
+  	.orig_terms <- spsUtil::quiet(as.formula(expr) |> terms(data = data) |> attr("term.labels"));
 
 		# If any term is a `use()` term, then we need to get the taxonomy
 		# for each term and replace the term with the taxonomy field names:
