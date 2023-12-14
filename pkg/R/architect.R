@@ -156,8 +156,9 @@ define <- function(data = NULL, ..., keep.rownames = TRUE){
   # `.ops` contains the operations to use to define the data:
   .ops <- rlang::enexprs(...) |> purrr::map(.terms_check);
 
-  # `.ops` is iterated over using `.func`:
-  purrr::iwalk(.ops, .func);
+  # `.ops` is iterated over using `.func`.  The call to `spsUtil::quiet()` is
+  # used to suppress all messages outside of errors:
+  spsUtil::quiet(purrr::iwalk(.ops, .func));
 
   return(invisible(data))
 }
