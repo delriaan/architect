@@ -1,7 +1,7 @@
 define <- function(data = NULL, ..., keep.rownames = TRUE){
 #' Define a Data Operation
 #'
-#' \code{define} allows one to operate on data using one or more formula-based definitions. Data transformation and selection can be achieved with formulas or using standard \code{\link[data.table]{data.table}} syntax in a procedural manner with a single function call.
+#' \code{define()} allows one to operate on data using one or more formula-based definitions. Data transformation and selection can be achieved with formulas or using standard \code{\link[data.table]{data.table}} syntax in a procedural manner with a single function call. Each operation operates on the previous result making \code{define()} a pipeline of operations in a compact framework.
 #'
 #' @details
 #' \itemize{
