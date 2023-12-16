@@ -4,7 +4,7 @@
 \alias{define}
 \title{Define a Data Operation}
 \usage{
-define(data = NULL, ..., keep.rownames = TRUE)
+define(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL)
 }
 \arguments{
 \item{data}{The input data (see 'Details')}
@@ -17,6 +17,8 @@ define(data = NULL, ..., keep.rownames = TRUE)
 }}
 
 \item{keep.rownames}{See \code{\link[data.table]{data.table}}}
+
+\item{blueprint}{(EXPERIMENTAL) See \code{\link{blueprint}}.}
 }
 \value{
 The data modified
@@ -47,7 +49,7 @@ taxonomy_list <- list(
 );
 
 smart_mt <- smart.data$
-	new(as.data.table(mtcars, keep.rownames = TRUE))$
+	new(as.data.table(mtcars[1:10, ], keep.rownames = TRUE))$
 	taxonomy.rule(!!!taxonomy_list)$
 	enforce.rules(for_usage)$
 	cache_mgr(action = upd);
@@ -61,10 +63,28 @@ define(
 define(smart_mt, ~vs + am + use(identifier, category))[];
 
 define(smart_mt, x = sum(am^2) ~ use(identifier, category))[];
-define()[]
-define(x = 1:10, y = x * 3)[]
-define(x = 1:10, y = x * 3, z = x*y)[]
-define(NULL, x = 1:10, y = x * 3, z = x*y, ~x + z)[]
-define(data.table(), x = 1:10, y = x * 3, list(z = 10) ~ x)[]
+define()[];
+define(x = 1:10, y = x * 3)[];
+define(x = 1:10, y = x * 3, z = x*y)[];
+define(NULL, x = 1:10, y = x * 3, z = x*y, ~x + z)[];
+define(data.table(), x = 1:10, y = x * 3, list(z = 10) ~ x)[];
+
+# Predefined operations:
+predef_data <- define(smart_mt, x = sum(am^2) ~ use(identifier, category));
+
+redef_data <- define(
+	smart_mt
+	# Normally, listing 'x' would throw an error as it would not exist in the data;
+	# however, since a blueprint is provided from a previous definition, the 'x' variable is
+	# created within scope before the additional operations execute:
+	, list(j = 1, mpg, x) ~vs + am + use(identifier, category)
+	, blueprint = predef_data
+	);
+
+redef_data;
+
+attr(redef_data, "blueprint");
+
+identical(redef_data, define(smart_mt, blueprint = redef_data));
 
 }
