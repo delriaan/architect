@@ -2,7 +2,7 @@
 % Please edit documentation in R/architect.R
 \name{define}
 \alias{define}
-\title{Define a Data Operation}
+\title{Define a Data Transformation Schematic}
 \usage{
 define(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL)
 }
