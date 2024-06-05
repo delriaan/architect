@@ -33,36 +33,47 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 #' @return The data modified
 #'
 #' @examples
-#' library(smart.data)
-#' smart.start();
+#' if (require(smart.data)){
+#' 	library(smart.data)
+#' 	smart.start();
 #'
-#' taxonomy_list <- list(
-#' 	identifier = taxonomy(
-#' 		term = "identifier"
-#' 		, desc = "Identifier"
-#' 		, fields = c("rn"))
-#' 	, category = taxonomy(
-#' 		term = "category"
-#' 		, desc = "Category"
-#' 		, fields = c("cyl", "gear", "carb")
-#' 		)
-#' );
+#' 	taxonomy_list <- list(
+#' 		identifier = taxonomy(
+#' 			term = "identifier"
+#' 			, desc = "Identifier"
+#' 			, fields = c("rn"))
+#' 		, category = taxonomy(
+#' 			term = "category"
+#' 			, desc = "Category"
+#' 			, fields = c("cyl", "gear", "carb")
+#' 			)
+#' 		);
 #'
-#' smart_mt <- smart.data$
-#' 	new(as.data.table(mtcars[1:10, ], keep.rownames = TRUE))$
-#' 	taxonomy.rule(!!!taxonomy_list)$
-#' 	enforce.rules(for_usage)$
-#' 	cache_mgr(action = upd);
+#' 	smart_mt <- smart.data$
+#' 		new(as.data.table(mtcars[1:10, ], keep.rownames = TRUE))$
+#' 		taxonomy.rule(!!!taxonomy_list)$
+#' 		enforce.rules(for_usage)$
+#' 		cache_mgr(action = upd);
 #'
-#' define(
-#' 	smart_mt
-#' 	, list(j = 1, mpg) ~vs + am + use(identifier, category)
-#' 	, ~j + mpg
-#' 	)[];
+#' 	print(test_obj <- define(
+#' 		smart_mt
+#' 		, list(j = 1, mpg) ~vs + am + use(identifier, category)
+#' 		, ~j + mpg
+#' 		, keep.rownames = FALSE
+#' 		))
 #'
-#' define(smart_mt, ~vs + am + use(identifier, category))[];
+#' 	print(test_obj <- define(smart_mt, ~vs + am + use(identifier, category)));
 #'
-#' define(smart_mt, x = sum(am^2) ~ use(identifier, category))[];
+#' 	print(define(
+#' 		test_obj
+#' 		, `:=`(x = sum(am^2), y = 10) ~ use(identifier, category)
+#' 		));
+#'
+#' 	print(test_obj)
+#'
+#' 	rm(test_obj)
+#' }
+#'
 #' define()[];
 #' define(x = 1:10, y = x * 3)[];
 #' define(x = 1:10, y = x * 3, z = x*y)[];
@@ -73,19 +84,25 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 #' predef_data <- define(smart_mt, x = sum(am^2) ~ use(identifier, category));
 #'
 #' redef_data <- define(
-#'		smart_mt
-#'		# Normally, listing 'x' would throw an error as it would not exist in the data;
-#'		# however, since a blueprint is provided from a previous definition, the 'x' variable is
-#'		# created within scope before the additional operations execute:
-#'		, list(j = 1, mpg, x) ~vs + am + use(identifier, category)
-#'		, blueprint = predef_data
-#'		);
+#' 	smart_mt
+#' 	# Normally, listing 'x' would throw an error as it would not exist in the data;
+#' 	# however, since a blueprint is provided from a previous definition, the 'x' variable is
+#' 	# created within scope before the additional operations execute:
+#' 	, list(j = 1, mpg, x) ~vs + am + use(identifier, category)
+#' 	, blueprint = predef_data
+#' 	);
 #'
 #' redef_data;
 #'
 #' attr(redef_data, "blueprint");
 #'
-#' identical(redef_data, define(smart_mt, blueprint = redef_data));
+#' identical(redef_data, define(smart_mt, blueprint = redef_data))
+#'
+#' if ("smart.data" %in% loadedNamespaces()){
+#' 	detach("package:smart.data", unload = TRUE)
+#' }
+#'
+#' rm(redef_data, smart_mt, predef_data, taxonomy_list)
 #'
 #' @export
 
@@ -165,7 +182,12 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 	    	# Operation Branch:
 	    	.out_expr <- if (y != ""){
 		      # Assignment branch
-	          rlang::expr(data[, data.table::`:=`(!!y, !!fun_expr)])
+	    			if (as.list(fun_expr)[[1]] |> as.character() == "`:=`"){
+	          	rlang::expr(data[, `:=`(!!y, !!fun_expr)])
+	    			} else {
+	    				# browser()
+	    				rlang::expr(data[, !!rlang::sym(y) := !!fun_expr]);
+	    			}
 	        } else {
 		      # Operation-only branch
 	          rlang::expr(data[, !!fun_expr])
