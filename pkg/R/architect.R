@@ -163,7 +163,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 	    	# Operation Branch
 	    	.out_expr <- if (y != ""){
 		      # Assignment branch
-	          rlang::expr(data[, `:=`(!!y, !!fun_expr)])
+	          rlang::expr(data[, data.table`:=`(!!y, !!fun_expr)])
 	        } else {
 		      # Operation-only branch
 	          rlang::expr(data[, !!fun_expr])
@@ -182,7 +182,6 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 	    	# Identity
 	    	rlang::expr(data)
 	    }
-
 
     data <<- eval(.op);
   };
@@ -289,7 +288,7 @@ join.reduce <- function(join_map, out_name, x_names, i_names, filters = TRUE, dt
 #'
 #' \code{join.reduce} leverages \code{\link[data.table]{data.table}} fast joins and \code{\link[purrr]{reduce}} from package \code{purr}
 #'
-#' @param join_map The input join-map (see \code{link{join.mapper}})
+#' @param join_map The input join-map (see \code{\link{join.mapper}})
 #' @param out_name The name of the output object
 #' @param x_names (string[]) Names or REGEX patterns indicating the outer table: multiple values will be concatenated into a delimited string
 #' @param i_names (string[]) Names or REGEX patterns indicating the inner table to be joined: multiple values will be concatenated into a delimited string

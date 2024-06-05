@@ -1,6 +1,6 @@
 # Architect 
 
-The goal of `architect` is to provide a set of tools to help with the design and arrangement of tabular data.  Specifically, it provides a set of tools that encourage thinking in terms of design topology.
+The goal of `architect` is to provide a set of tools to help with the design and arrangement of tabular data. Specifically, it provides a set of tools that encourage thinking in terms of design topology.
 
 ## Installation
 
