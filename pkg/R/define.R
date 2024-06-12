@@ -17,7 +17,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 #' \item{If no LHS is given, the operation defaults to selection based on the RHS}
 #' }
 #' @param keep.rownames See \code{\link[data.table]{data.table}}
-#' @param blueprint (EXPERIMENTAL) See \code{\link{blueprint}}.
+#' @param blueprint (EXPERIMENTAL) See \code{\link{blueprint}}. Blueprints are always evaluated first when provided: this makes it easy to "branch" off of a base dataset.
 #'
 #' @return The data modified
 #'
@@ -70,7 +70,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 #' define(data.table(), x = 1:10, y = x * 3, list(z = 10) ~ x)[];
 #'
 #' # Predefined operations:
-#' predef_data <- define(smart_mt, x = sum(am^2) ~ use(identifier, category));
+#' predef_data <- blueprint(schema = rlang::exprs(x = sum(am^2) ~ use(identifier, category)));
 #'
 #' redef_data <- define(
 #' 	smart_mt
@@ -85,7 +85,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 #'
 #' attr(redef_data, "blueprint");
 #'
-#' identical(redef_data, define(smart_mt, blueprint = redef_data))
+#' identical(redef_data, define(smart_mt, blueprint = attr(redef_data, "blueprint")))
 #'
 #' if ("smart.data" %in% loadedNamespaces()){
 #' 	detach("package:smart.data", unload = TRUE)
@@ -102,7 +102,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 	  	rownames() |>
 	  	grep(pattern = "smart.data");
 
-  # Check for the presence of a 'smart.data' classed object:
+  # Check for the presence of a 'smart.data' classed object: ----
 	if (.smartData_is_installed){
 		if (smart.data::is.smart(data)){
 			.smartData <- data$clone(deep = TRUE);
@@ -114,7 +114,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 		data <- data.table::as.data.table(data, keep.rownames = keep.rownames);
 	}
 
-  # `.terms_check`: a helper function that checks for the use of the 'smart.data' `use()` function in the RHS of the formula:
+  # `.terms_check`: a helper function that checks for the use of the 'smart.data' `use()` function in the RHS of the formula: ----
   .terms_check <- \(expr){
   	if (!grepl("~", rlang::as_label(expr))){
   		return(expr);
@@ -152,7 +152,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
   	return(expr);
   }
 
-  # `.func`: the function that is called for each operation:
+  # `.func`: the function that is called for each operation: ----
   .func <- \(x, y){
   	# x:
   	# y: Potentially a symbol under an assignment operation
@@ -208,11 +208,11 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
     data <<- eval(operations);
   };
 
-  # `operations` contains the operations to use to define the data:
+  # `operations` contains the operations to use to define the data: ----
   if (!rlang::is_empty(blueprint)){
-  	if (methods::is(attr(blueprint, "blueprint"), "blueprint")){
+  	if (methods::is(blueprint, "blueprint")){
   		operations <- rlang::exprs(
-  			!!!attr(blueprint, "blueprint")@schema
+  			!!!blueprint@schema
   			, !!!purrr::map(rlang::enexprs(...), .terms_check)
   			)
   	} else {
@@ -231,5 +231,6 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 		data <- magrittr::set_attr(data, "blueprint", new("blueprint", schema = operations))
   }
 
+  # Return: ----
   return(invisible(data));
 }

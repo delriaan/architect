@@ -18,7 +18,7 @@ define(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL)
 
 \item{keep.rownames}{See \code{\link[data.table]{data.table}}}
 
-\item{blueprint}{(EXPERIMENTAL) See \code{\link{blueprint}}.}
+\item{blueprint}{(EXPERIMENTAL) See \code{\link{blueprint}}. Blueprints are always evaluated first when provided: this makes it easy to "branch" off of a base dataset.}
 }
 \value{
 The data modified
@@ -81,7 +81,7 @@ define(NULL, x = 1:10, y = x * 3, z = x*y, ~x + z)[];
 define(data.table(), x = 1:10, y = x * 3, list(z = 10) ~ x)[];
 
 # Predefined operations:
-predef_data <- define(smart_mt, x = sum(am^2) ~ use(identifier, category));
+predef_data <- blueprint(schema = rlang::exprs(x = sum(am^2) ~ use(identifier, category)));
 
 redef_data <- define(
 	smart_mt
@@ -96,7 +96,7 @@ redef_data;
 
 attr(redef_data, "blueprint");
 
-identical(redef_data, define(smart_mt, blueprint = redef_data))
+identical(redef_data, define(smart_mt, blueprint = attr(redef_data, "blueprint")))
 
 if ("smart.data" \%in\% loadedNamespaces()){
 	detach("package:smart.data", unload = TRUE)
