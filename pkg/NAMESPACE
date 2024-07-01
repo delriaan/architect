@@ -2,9 +2,13 @@
 
 export(blueprint)
 export(define)
+export(jmap)
 export(join.mapper)
 export(join.reduce)
+export(join_mapper)
+export(join_reduce)
 exportClasses(blueprint)
+exportClasses(jmap)
 importFrom(book.of.features,logic_map)
 importFrom(data.table,"%ilike%")
 importFrom(data.table,"%like%")

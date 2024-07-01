@@ -95,26 +95,8 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 #'
 #' @export
 
-	force(data);
-  .smartData <- fun_expr <- by_args <- NULL;
-
-  .smartData_is_installed <- installed.packages() |>
-	  	rownames() |>
-	  	grep(pattern = "smart.data");
-
-  # Check for the presence of a 'smart.data' classed object: ----
-	if (.smartData_is_installed){
-		if (smart.data::is.smart(data)){
-			.smartData <- data$clone(deep = TRUE);
-			data <- data.table::copy(.smartData$data);
-		} else{
-			data <- data.table::as.data.table(data, keep.rownames = keep.rownames);
-		}
-	} else {
-		data <- data.table::as.data.table(data, keep.rownames = keep.rownames);
-	}
-
-  # `.terms_check`: a helper function that checks for the use of the 'smart.data' `use()` function in the RHS of the formula: ----
+	# :: Function Definitions: ----
+  # `.terms_check`: a helper function that checks for the use of the 'smart.data' `use()` function in the RHS of the formula:
   .terms_check <- \(expr){
   	if (!grepl("~", rlang::as_label(expr))){
   		return(expr);
@@ -152,8 +134,8 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
   	return(expr);
   }
 
-  # `.func`: the function that is called for each operation: ----
-  .func <- \(x, y){
+  # `.build`: the function that is called for each operation:
+  .build <- \(x, y){
   	# x:
   	# y: Potentially a symbol under an assignment operation
 
@@ -175,7 +157,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
       }
     }
 
-  	# `operations`: the expressions to be evaluated in order of appearance
+  	# `operations`: The list of expressions to be evaluated in order of appearance:
     operations <- if (!rlang::is_empty(fun_expr)){
 	    	# Operation Branch:
 	    	.out_expr <- if (y != ""){
@@ -204,11 +186,32 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
 	    	# Identity:
 	    	rlang::expr(data)
 	    }
-
+		# Update `data` (note the `<<-` operator)
     data <<- eval(operations);
   };
 
-  # `operations` contains the operations to use to define the data: ----
+	force(data);
+  .smartData <- fun_expr <- by_args <- NULL;
+
+  .smartData_is_installed <- installed.packages() |>
+  	rownames() |>
+  	grepl(pattern = "smart[.]data") |>
+  	any();
+
+  # :: Check for the presence of a 'smart.data' classed object: ----
+	if (.smartData_is_installed){
+		if (smart.data::is.smart(data)){
+			.smartData <- data$clone(deep = TRUE);
+			data <- data.table::copy(.smartData$data);
+		} else{
+			data <- data.table::as.data.table(data, keep.rownames = keep.rownames);
+		}
+	} else {
+		data <- data.table::as.data.table(data, keep.rownames = keep.rownames);
+	}
+
+  # :: `operations` contains the operations to use to define the data: ----
+  # Blueprints are processed before user-supplied expressions.
   if (!rlang::is_empty(blueprint)){
   	if (methods::is(blueprint, "blueprint")){
   		operations <- rlang::exprs(
@@ -223,14 +226,16 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL){
   	operations <- rlang::enexprs(...) |> purrr::map(.terms_check);
   }
 
-  # `operations` is iterated over using `.func`.  The call to `spsUtil::quiet()` is
+  # `operations` is iterated over using `.build`.  The call to `spsUtil::quiet()` is
   # used to suppress all messages outside of errors:
-  spsUtil::quiet(purrr::iwalk(operations, .func));
+  spsUtil::quiet(purrr::iwalk(operations, .build));
 
+  # :: Finalize and return: ----
   if (!rlang::is_empty(data)){
 		data <- magrittr::set_attr(data, "blueprint", new("blueprint", schema = operations))
+	  return(invisible(data));
+  } else {
+  	cli::cli_alert_danger("Object `data` is empty!")
+  	return(data.table::data.table())
   }
-
-  # Return: ----
-  return(invisible(data));
 }
