@@ -25,9 +25,21 @@
     <loc>/reference/index.html</loc>
   </url>
   <url>
+    <loc>/reference/jmap-class.html</loc>
+  </url>
+  <url>
     <loc>/reference/join.mapper.html</loc>
   </url>
   <url>
     <loc>/reference/join.reduce.html</loc>
+  </url>
+  <url>
+    <loc>/reference/join_mapper.html</loc>
+  </url>
+  <url>
+    <loc>/reference/join_reduce.html</loc>
+  </url>
+  <url>
+    <loc>/reference/to_rhs.html</loc>
   </url>
 </urlset>

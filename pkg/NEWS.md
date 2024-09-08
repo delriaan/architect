@@ -1,4 +1,17 @@
-# architect 0.1.2.4300
+# architect 0.1.2.4315
+
+## New
+- `to_rhs()`: This function takes its input and creates an language object that can be included in the right-hand side of a formula object.
+
+## Updated
+- `define()`: Added argument `progress` to leverage `purrr::map(..., .progress)`
+
+# architect 0.1.2.4310
+
+## Updates
+
+- `join_mapper()`: Removed support for equi-"joins" (e.g., "col_A==col_B").
+- `join_reduce()`:Complete code re-write to accommodate new constructs and have the ability to include unspecified natural joins during reduction.
 
 ## Updates
 

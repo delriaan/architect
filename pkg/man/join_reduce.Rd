@@ -3,17 +3,17 @@
 \name{join_reduce}
 \alias{join_reduce}
 \alias{join.reduce}
-\title{Join-Reduce Multiple Datasets}
+\title{Join-Reduce Multiple Datasets (experimental)}
 \usage{
 join_reduce(
   join_map,
   out_name,
   x_names,
   i_names,
-  dt_key,
   source_env = attr(join_map, "env"),
   assign_env = attr(join_map, "env"),
-  clean = FALSE
+  clean = FALSE,
+  finalizer = eval
 )
 }
 \arguments{
@@ -21,27 +21,28 @@ join_reduce(
 
 \item{out_name}{(symbol|string) The name of the output object}
 
-\item{x_names}{(string[]) Names or REGEX patterns indicating the outer table: multiple values will be concatenated into a delimited string}
+\item{x_names}{(string[]) Names or REGEX patterns indicating the outer table(s): multiple values will be concatenated into a delimited string}
 
 \item{i_names}{(string[]) Names or REGEX patterns indicating the inner table to be joined: multiple values will be concatenated into a delimited string}
-
-\item{dt_key}{(string[], symbol[]) Names that participate in creating the \code{\link[data.table]{key}} for the output}
 
 \item{source_env}{The environment from which the input should be sourced.  If empty, it defaults to slot \code{env} in \code{jmap}}
 
 \item{assign_env}{The environment in which the output should be assigned.  If empty, it defaults to slot \code{env} in \code{jmap}}
 
 \item{clean}{(logical) \code{TRUE} indicates that the target object should be removed from \code{env} before creating the output}
+
+\item{finalizer}{A function that operates on the result just before exiting \code{join_reduce}. Note that the function must take the object as the first argument and be \code{\link[data.table]{data.table}}-compatible.}
 }
 \value{
-Combined datasets assigned to the designated environment
+A combined dataset or list of such assigned to \code{assign_env[[out_name]]}
 }
 \description{
 \code{join_reduce} leverages \code{\link[data.table]{data.table}} fast joins and \code{\link[purrr]{reduce}} from package \code{purr}
 }
-\section{Reduction}{
+\section{Reduction Order}{
 
-Datasets can be joined in different orders producing different results. \code{join_reduce} uses pairwise joins ranked by similarity (high-to-low) of common features and unique values in those features. Each joined pair is row-wise reduced and then finalized by taking only unique records.
+Datasets can be joined in different orders producing different results according to \code{\link[data.table]{data.table}}'s join rules. \code{join_reduce} uses pairwise joins ranked by similarity (high-to-low) of common features and unique values in those features. Each joined pair is collapsed into a sequential join order, so it is important to choose \code{x_names} and \code{i_names} carefully based on desired results.
+When \code{x_names} has multiple matched object names, reduction occurs for each object yielding potentially similar information across multiple objects. At this stage, one could take the resultant list and perform the operation again or use explicit \code{\link[data.table]{data.table}} join definitions over common fields (\emph{recommended}).
 }
 
 \seealso{

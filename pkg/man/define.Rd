@@ -4,7 +4,13 @@
 \alias{define}
 \title{Define a Data Transformation Schematic}
 \usage{
-define(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL)
+define(
+  data = NULL,
+  ...,
+  keep.rownames = TRUE,
+  blueprint = NULL,
+  progress = FALSE
+)
 }
 \arguments{
 \item{data}{The input data (see 'Details')}
@@ -19,6 +25,8 @@ define(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL)
 \item{keep.rownames}{See \code{\link[data.table]{data.table}}}
 
 \item{blueprint}{(EXPERIMENTAL) See \code{\link{blueprint}}. Blueprints are always evaluated first when provided: this makes it easy to "branch" off of a base dataset.}
+
+\item{progress}{(logical | FALSE) Should a progress bar be shown during execution (passed to \code{\link[purrr]{map}})?}
 }
 \value{
 The data modified

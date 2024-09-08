@@ -1,38 +1,42 @@
 join_mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_names, field_names = "*", clean = FALSE){
-#' Create a Data Join Mapper
+#' Create a Data Join Mapper (experimental)
 #'
-#' \code{join_mapper} Creates a map with which datasets can be joined using \code{\link[data.table]{data.table}} methods.  Cross-environment objects are not supported, but objects in attached environment \emph{might} work.  Also, the output is given attribute \code{"env"} to store the value of \code{env}
+#' \code{join_mapper} Creates a 'field-to-dataset' map with which datasets can be joined using \code{\link[data.table]{data.table}} methods. Cross-environment objects are not supported including attached environments.
 #'
 #' @param map_name The output map name to use in assignment
 #' @param env The environment where source objects are found; this is also the environment of the assigned output.
 #' @param obj_names (string[]) The names of objects to join
-#' @param field_names (string[]) One or more strings and REGEX patterns used to define the field names to use for possible joins: matching is either REGEX or identity, and support for aliasing via \code{"primary_col==alias_col"} (note the quotes) is supported.
+#' @param field_names (string[]) One or more strings and REGEX patterns used to define the field names to use for possible joins. Matching is either \emph{regex}-based or identity: equi-joins (e.g., col_a==col_b) are not supported at this time. Specifying datasets in \code{obj_names} that do not have fields matched by \code{field_names} will result in an error. Each object in \code{obj_names} must have a field matched in \code{field_names}
 #' @param clean (logical) \code{TRUE} indicates that the object should be removed from \code{env} before creating the output
 #'
 #' @return An object of class \code{\link{jmap}}
 #'
+#' @note A poorly-specified map or incompatible dataset structure will result in an empty map.
+#'
 #' @importFrom book.of.features logic_map
 #' @importFrom utils hasName
+#' @importFrom rlang %||%
 #'
 #' @aliases join.mapper
 #' @family semantic architecture
 #' @export
 
   # :: Argument Handling ----
-  # map_name
+  # `map_name`, `obj_names`:
   map_name <- rlang::as_label(rlang::enexpr(map_name))
 
   obj_names <- ls(pattern = paste(obj_names, collapse = "|"), envir = env)
 
-  # field_names
-  field_names <- (\(x){
+  # `field_names`:
+  field_names <- field_names |>
+  	(\(x){
+			equi_joins	<- x[grepl("[=]{2}", x)]
 			natural_joins <- x[!grepl("[=$\\^()]", x)]
-			equi_joins	<- x[grepl("[=]{2}", x)] %>% .[!. %in% natural_joins]
 			fuzzy_joins	<- x[grepl("[$\\^()]", x)] %>% .[!. %in% c(equi_joins, natural_joins)]
 			res <- mget(ls()) |> lapply(stringi::stri_split_regex, pattern = "[, |]", simplify = TRUE)
 
 			return(res)
-	  })(field_names) |>
+	  })() |>
   	purrr::imap(\(field, join_type){
   		vars <- stringi::stri_replace_all_fixed(field, " ", "", vectorize_all = FALSE)
 
@@ -51,50 +55,67 @@ join_mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
   	# Remove empty elements:
   	purrr::compact();
 
+  # Check `field_names` for equi-joins (not allowed):
+  if (hasName(field_names, "equi_joins")){
+		stop("Equi-joins are not supported. Create a common field in target datasets and re-run.")
+	}
+
   # :: Output ----
   if (clean){ rm(list = purrr::keep(map_name, exists, envir = env), envir = env) }
 
   assign(map_name, {
-  	# browser()
+  	# Part 1 - Detect fields by dataset:
   	res <- { mget(obj_names, envir = env) |>
 	    purrr::imap(\(.this, .obj){
-	      # field_names has one or more of the following names:
+	      # `field_names` is a list having one or more of the following elements:
 	    	# - natural_joins
 	    	# - equi_joins
 	    	# - fuzzy_joins
-	      .fields <- purrr::map(field_names, \(x){
-	      		if (!rlang::is_empty(x)){
-    					ref_obj <- get(.obj, envir = env)
-	      			f <- eval(x) |>
-	      				purrr::keep(\(j){
-	    						(stringi::stri_split_regex(j, "[ =]", simplify = TRUE, tokens_only = TRUE) %in%
-	    						 	names(ref_obj)) |>
-	    							any()
+
+	    	# Match fields from candidate datasets to join:
+	      .fields <- purrr::map(field_names, \(fn){
+	      		if (!rlang::is_empty(fn)){
+	      			f <- eval(fn)
+	      			f <- purrr::keep(f, \(j){
+	    						res <- stringi::stri_split_regex(j, "[ =]+", simplify = TRUE, tokens_only = TRUE) %in%
+	    						 	names(env[[.obj]])
+	    						any(res)
 	    					})
-	      			f
+
+	      			return(f)
 	      		}
 	      	}) |>
 	      	magrittr::freduce(list(purrr::compact, unlist, unique));
 
 	      # Output for the current loop:
-	      data.table::data.table(
-	      	obj_name = .obj
-	      	, field_names = .fields
+	      data.table::data.table(obj_name = .obj, field_names = .fields)[
 	      	# `n_vals`: Unique number of values in obj[[f]]
-	      	, n_vals = sapply(.fields, \(f){
-		      		data.table::uniqueN(env[[.obj]][[f]])
+	      	, .(n_vals = {
+	      			ref <- env[[.obj]]
+
+		      		n <- sapply(field_names, \(f) data.table::uniqueN(ref[[f]]))
+
+	      			# Handle 'empty' result:
+		      		purrr::modify_at(n, .at = seq_along(n), .f = purrr::modify_if, rlang::is_empty, ~NA)
 	      		})
-	      	)
+	      	, by = .(obj_name, field_names)
+	      	] |>
+	      	na.omit()
 	    }) |>
-  		data.table::rbindlist(fill = TRUE) |>
+  		purrr::compact() |>
 	  	na.omit() |>
-  		purrr::modify_at("n_vals", unlist) |>
-  		architect::define(
-				# This section creates a simple one-hot encoding of possible object names:
-		  	cbind(
-		  		# Element 1
+  		data.table::rbindlist(fill = TRUE) |>
+				purrr::modify_at("n_vals", unlist)
+  	}
+
+  	# browser()
+		# Part 2 - Weighted 'one-hot' encoding of possible object names:
+  	res <- { architect::define(
+			res
+	  	, cbind(
+		  		# Element 1:
 		  		.SD[, .(field_names)]
-		  		# Element 2
+		  		# Element 2:
 		  		, book.of.features::logic_map(
 		  				fvec = obj_name
 			      	# `n_vals`: Unique number of values in obj_name[[field_names]]
@@ -117,7 +138,8 @@ join_mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
 			)
   	}
 
-		jmap(map = res, env = env)
+  	# Return value of class 'jmap':
+  	jmap(map = res, env = env)
   }, envir = env);
 }
 
@@ -129,8 +151,8 @@ join.mapper <- join_mapper
 #'
 #' Class \code{jmap} contains the results of a call to \code{\link{join_mapper}}
 #'
+# @name jmap
 #' @docType class
-#' @name jmap
 #' @slot map The map produced as a result of calling \code{\link{join_mapper}}
 #' @slot env The environment of assignment
 #' @export
