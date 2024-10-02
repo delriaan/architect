@@ -1,9 +1,21 @@
+# architect 0.1.2.4320
+
+## Bug Fixes
+
+- `define()`: 
+   - Corrected cases where standard RHS terms were not being processed when processing `use()` terms. 
+     - For example, the incorrect behavior would *only* return fields mapped to taxonomy terms *"this"* and *"that"* in a call like the following: `define(<smart.data object>, ~other + use(this, that))`
+     - The correct behavior would also include the literal field *"other"*.
+   - Corrected implementation of `spsUtil::quiet` to allow argument `progress` to produce the expected result.
+
 # architect 0.1.2.4315
 
 ## New
+
 - `to_rhs()`: This function takes its input and creates an language object that can be included in the right-hand side of a formula object.
 
 ## Updated
+
 - `define()`: Added argument `progress` to leverage `purrr::map(..., .progress)`
 
 # architect 0.1.2.4310

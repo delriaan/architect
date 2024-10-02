@@ -121,7 +121,8 @@ join_mapper <- function(map_name = "new_join_map", env = parent.frame(), obj_nam
 			      	# `n_vals`: Unique number of values in obj_name[[field_names]]
 		  				, avec = n_vals
 		  				, bvec = unique(obj_name) |> rlang::set_names()
-		  				)
+							, sparse = FALSE
+		  				) |> data.table::as.data.table()
 					)
 			# Encoded values are reduce by `field_names`:
 			, purrr::map(.SD, max, na.rm = TRUE) ~ field_names

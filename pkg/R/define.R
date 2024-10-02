@@ -104,12 +104,12 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL, pro
 
   	.orig_terms <- spsUtil::quiet(as.formula(expr) |> terms(data = data) |> attr("term.labels"));
 
+		# 1. Capture the terms that are not `use()` terms:
+		.terms <- grep("^use[(]", .orig_terms, value = TRUE, invert = TRUE);
+
 		# If any term is a `use()` term, then we need to get the taxonomy
 		# for each term and replace the term with the taxonomy field names:
 		if (any(grepl("^use[(]", .orig_terms)) & !rlang::is_empty(.smartData)){
-			# 1. Capture the terms that are not `use()` terms:
-			.terms <- grep("^use[(]", .orig_terms, value = TRUE, invert = TRUE);
-
 			# 2. Capture the terms that are `use()` terms:
 			.taxonomy <- grep("^use[(]", .orig_terms, value = TRUE) |>
 					rlang::parse_expr() |>
@@ -124,11 +124,15 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL, pro
 							purrr::map(\(tax) tax@fields) |>
 							purrr::compact() |>
 							purrr::reduce(c)
-					));
+					)) |> eval();
 
-			# 4. Update the formula with the new terms:
+			# 4. Update the formula with the combined terms:
 			expr <- as.formula(expr);
-			rlang::f_rhs(expr) <- str2lang(paste(c(.terms, eval(.taxonomy)), collapse = " + "));
+			rlang::f_rhs(expr) <- to_rhs(!!!.terms, !!!.taxonomy)
+		} else {
+			# 4. Update the formula with the provided terms:
+			expr <- as.formula(expr);
+			rlang::f_rhs(expr) <- to_rhs(!!!.terms)
 		}
 
   	return(expr);
@@ -187,7 +191,7 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL, pro
 	    	rlang::expr(data)
 	    }
 		# Update `data` (note the `<<-` operator)
-    data <<- eval(operations);
+    data <<- spsUtil::quiet(eval(operations));
   };
 
 	force(data);
@@ -228,7 +232,9 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL, pro
 
   # `operations` is iterated over using `.build`.  The call to `spsUtil::quiet()` is
   # used to suppress all messages outside of errors:
-  spsUtil::quiet(purrr::iwalk(operations, .build, .progress = progress));
+  # spsUtil::quiet(
+		purrr::iwalk(operations, .build, .progress = progress)
+	# );
 
   # :: Finalize and return: ----
   if (!rlang::is_empty(data)){
@@ -242,13 +248,13 @@ define <- function(data = NULL, ..., keep.rownames = TRUE, blueprint = NULL, pro
 
 to_rhs <- function(...){
 	#' Convert to RHS Formula Terms
-	#' 
+	#'
 	#' \code{to_rhs} takes its input and creates an language object that can be included in the right-hand side of a formula object.
-	#' 
+	#'
 	#' @param ... \code{\link{rlang}{dots_list}} Strings or symbols to use
-	#' 
+	#'
 	#' @return A partial right-hand-side of a formula
-	#' 
+	#'
 	#' @examples
 	#' res <- define(
 	#' 	NULL
@@ -261,8 +267,9 @@ to_rhs <- function(...){
 	#' print(res <- define(res, ~!!to_rhs(z, omega)))
 	#' attributes(res)$blueprint
 	#' @export
-	
+
 	.terms <- rlang::enexprs(...) |> as.character()
-	str2lang(paste(.terms, collapse = " + ") |> 
+	str2lang(paste(.terms, collapse = " + ") |>
 		stringi::stri_replace_all_fixed("+ -", "-", vectorize_all = FALSE))
 }
+
