@@ -30,6 +30,7 @@ blueprint <- setClass(Class = "blueprint", package = "architect", slots = c(sche
 
 # in a package namespace:
 .onUnload <- function(libpath){
+	rlang::env_unlock(getNamespace("architect"))
 	removeMethod(f = "print", signature = "blueprint")
 	removeMethod(f = "show", signature = "blueprint")
 }

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Intelligent Data Architecture • architect</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
@@ -19,7 +19,7 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
-    
+
 
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -33,7 +33,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">architect</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2.4315</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.2.4320</span>
       </span>
     </div>
 
@@ -50,7 +50,7 @@
 <li>
   <a href="https://github.com/delriaan/architect/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul>
@@ -61,7 +61,7 @@
 </div>
 <!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="contents col-md-9">
@@ -69,7 +69,39 @@
 <div class="page-header"><h1 id="architect-architect">
 <img src="architect_1-small.png" alt="architect"> Architect<a class="anchor" aria-label="anchor" href="#architect-architect"></a>
 </h1></div>
-<p>The goal of <code>architect</code> is to provide a set of tools to help with the design and arrangement of tabular data. Specifically, it provides a set of tools that encourage thinking in terms of design topology.</p>
+<p>The goal of <code>architect</code> is to provide a set of tools to help with the design and arrangement of tabular data. Specifically, it provides a set of tools that encourage thinking in terms of design topology. The main theme for creating <code>architect</code> is to design and manipulate datasets using a formulaic interface expressing intent. A secondary theme is to be locally concise when performing chained operations.</p>
+<div class="section level2">
+<h2 id="formula-for-transformation">Formula for Transformation<a class="anchor" aria-label="anchor" href="#formula-for-transformation"></a>
+</h2>
+<p>The feature function of <code>architect</code> is <code><a href="reference/define.html">define()</a></code>, which <em>“allows one to operate on data using one or more formula-based definitions. Data transformation and selection can be achieved with formulas or using standard <code>data.table</code> syntax in a procedural manner with a single function call. Each operation operates on the previous result making <code><a href="reference/define.html">define()</a></code> a pipeline of operations in a compact framework.”</em></p>
+<p>Model formula notation is familiar to R: <code>architect</code> was designed with the idea fomulaic model specification in mind.</p>
+<p>Take, for example, the following model specification:</p>
+<p><math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>y</mi><mo>∼</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><mo>∑</mo><mrow><msubsup><mi>β</mi><mi>i</mi><mi>⊤</mi></msubsup><msub><mi>X</mi><mi>i</mi></msub></mrow><mo>+</mo><mtext mathvariant="normal">err</mtext></mrow><annotation encoding="application/x-tex">y \sim \beta_0 + \sum{\beta_{i}^\top X_i} + \text{err}</annotation></semantics></math></p>
+<p>The main takeaway is the <em>concept</em> of input defining output within a specified context (distribution, parameters, link function, etc.). Why not use something similar for datasets?</p>
+<p>In <code>define</code>: how a formula is specified determines the operation:</p>
+<ul>
+<li>Literal column selection: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>∼</mo><msub><mi>x</mi><mn>1</mn></msub><mo>+</mo><msub><mi>x</mi><mn>2</mn></msub><mo>+</mo><msub><mi>x</mi><mn>3</mn></msub><mo>+</mo><mi>…</mi><mo>+</mo><msub><mi>x</mi><mi>k</mi></msub></mrow><annotation encoding="application/x-tex">\sim x_1 + x_2 + x_3 + \ldots + x_k</annotation></semantics></math>
+</li>
+<li>Transformation with a selection of columns: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Λ</mi><mi>m</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f({\scriptstyle \Lambda_m})</annotation></semantics></math>
+</li>
+<li>Transformation with a selection of columns grouped by a different set of columns: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Λ</mi><mi>m</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>∼</mo><msub><mi>X</mi><mi>n</mi></msub><mo>:</mo><msub><mi>Λ</mi><mi>m</mi></msub><mo>∩</mo><msub><mi>X</mi><mi>k</mi></msub><mo>:=</mo><mi>∅</mi></mrow><annotation encoding="application/x-tex">f(\Lambda_m)\sim X_n: \Lambda_m \cap X_k := \emptyset</annotation></semantics></math>
+</li>
+</ul>
+<p>Underneath the hood, the libraries <code>data.table</code>, <code>rlang</code>, and <code>purrr</code> are combined to allow for the above to be expressed as a series of definitions of how to modify a dataset: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>D</mi><mrow><mi>i</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>∼</mo><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msub><mi>D</mi><mi>i</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo><mo>:=</mo><mi>g</mi><mo minsize="1.2" maxsize="1.2" stretchy="false" form="prefix">(</mo><msub><mi>D</mi><mi>i</mi></msub><mo>⇒</mo><mi>f</mi><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Λ</mi><mi>m</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>∼</mo><msub><mi>X</mi><mi>n</mi></msub><mo minsize="1.2" maxsize="1.2" stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">D_{i+1} \sim g\big(D_{i}\big) := g\big(D_i \Rightarrow f(\Lambda_m)\sim X_n\big)</annotation></semantics></math></p>
+<p>Each step in the transformation chain is immediately understood to result in a tabular result (enforced by <code>data.table</code>), and in many cases, the code written becomes much easier to read given the absence of needing pipes to define the chain. The reason is that the chain is an expression list (<code>rlang</code>) iterated over (<code>purrr</code>) and evaluated, the current dataset being updated by the next evaluated expression.</p>
+</div>
+<div class="section level2">
+<h2 id="join-maps">Join Maps<a class="anchor" aria-label="anchor" href="#join-maps"></a>
+</h2>
+<p>Joining datasets is handled in various ways; however, being able to know ahead of time how multiple datasets will combine is the idea behind <code><a href="reference/join_mapper.html">join_mapper()</a></code> and <code><a href="reference/join_reduce.html">join_reduce()</a></code>.</p>
+<ul>
+<li>
+<strong><code><a href="reference/join_mapper.html">join_mapper()</a></code></strong> was designed to define a map describing the order of dataset joins based on a simple heuristic of field commonality. The join map can be viewed directly and updated like any other tabular object.</li>
+<li>
+<strong><code><a href="reference/join_reduce.html">join_reduce()</a></code></strong> resolves the map defined by <code><a href="reference/join_mapper.html">join_mapper()</a></code> to create the final dataset.</li>
+</ul>
+<p>These functions are still a bit fragile in certain situations, but for simple tasks, all that is required is specifying <em>what</em> to join and the possible fields to join on.</p>
+</div>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -122,16 +154,16 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.7.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
 </div>
 
       </footer>
 </div>
 
-  
 
 
-  
+
+
 
   </body>
 </html>

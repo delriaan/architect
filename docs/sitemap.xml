@@ -1,45 +1,15 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/LICENSE-text.html</loc>
-  </url>
-  <url>
-    <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/blueprint.html</loc>
-  </url>
-  <url>
-    <loc>/reference/define.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/jmap-class.html</loc>
-  </url>
-  <url>
-    <loc>/reference/join.mapper.html</loc>
-  </url>
-  <url>
-    <loc>/reference/join.reduce.html</loc>
-  </url>
-  <url>
-    <loc>/reference/join_mapper.html</loc>
-  </url>
-  <url>
-    <loc>/reference/join_reduce.html</loc>
-  </url>
-  <url>
-    <loc>/reference/to_rhs.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/blueprint.html</loc></url>
+<url><loc>/reference/define.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/jmap-class.html</loc></url>
+<url><loc>/reference/join_mapper.html</loc></url>
+<url><loc>/reference/join_reduce.html</loc></url>
+<url><loc>/reference/to_rhs.html</loc></url>
 </urlset>
+
