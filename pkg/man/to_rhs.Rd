@@ -15,15 +15,3 @@ A partial right-hand-side of a formula
 \description{
 \code{to_rhs} takes its input and creates an language object that can be included in the right-hand side of a formula object.
 }
-\examples{
-res <- define(
-	NULL
-	, x = 1:10
-	, y = x * 3
-	, z = sum(y) ~ x
-	, omega := 100
-	)
-print(res)
-print(res <- define(res, ~!!to_rhs(z, omega)))
-attributes(res)$blueprint
-}

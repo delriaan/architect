@@ -1,23 +1,30 @@
 Type: Package
 Package: architect
 Title: Intelligent Data Architecture
-Version: 0.1.2.4320
-Author: Chionesu George <sapienti.Dei@outlook.com> [aut, cre]
+Version: 0.1.2.5
+Author: Chionesu George
 Maintainer: Chionesu George <sapienti.Dei@outlook.com>
-Description: Package `architect` is a framework for intelligent data architecture.
-License: file LICENSE
-Depends: R (>= 4.4.0), data.table (>= 1.15.0)
-Imports: purrr (>= 1.0.0)
-	, book.of.features (>= 0.1.3)
-  , magrittr (>= 2.0.0)
-  , stringi
-  , rlang
-	, utils
-	, spsUtil
-Suggests: smart.data (>= 0.1.3)
+Description: Package `architect` is a framework for intelligent data
+    architecture.
+License: Copyright 2023, 2024, 2025 Chionesu George. All rights reserved.
+URL: https://github.com/delriaan/architect,
+    https://delriaan.github.io/architect
+Depends: 
+    data.table (>= 1.15),
+    R (>= 4.5.0)
+Imports: 
+    book.of.features (>= 0.1),
+    magrittr (>= 2.0),
+    purrr (>= 1.0),
+    rlang (>= 1.1),
+    spsUtil (>= 0.2),
+    stringi (>= 1.8),
+    utils (>= 4.5)
+Suggests: 
+    smart.data (>= 0.1)
+VignetteBuilder: 
+    knitr
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
-VignetteBuilder: knitr
-URL: https://github.com/delriaan/architect/, https://delriaan.github.io/architect/
+RoxygenNote: 7.3.2
